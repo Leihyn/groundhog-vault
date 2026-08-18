@@ -1,0 +1,1530 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Groundhog Vault — Risk Memory Arena</title>
+  <meta name="description" content="A working prototype of the Groundhog Vault time-loop risk memory arena.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+  <!--
+    DESIGN PROPOSAL #2
+    DNA: DNA-G-S-M-N-X
+    Layout: strict information grid
+    Navigation: left side navigation
+    Hero: minimal editorial masthead
+    Color: neutral dark with one mustard accent
+    Typography: Newsreader serif + IBM Plex Sans / Mono
+
+    UX ARCHITECTURE
+    Entry: A judge lands in a ready arena containing two equally funded vaults.
+    Exit: After Life 2, the judge sees quantified Memory Lift and the exact persisted
+          policy that changed Groundhog's allocation.
+
+    Screens:
+    1. Arena — run the paired experiment and compare capital, allocations, and status.
+    2. Memory Evidence — inspect incident → lesson → policy → decision provenance.
+    3. Production Mapping — translate the arena into a constrained DAO workflow.
+
+    Happy path:
+    Ready → Run Life 1 → both vaults fail → policy persists → sessions reset →
+    Run Life 2 → decisions diverge → Memory Lift appears → inspect production map.
+
+    States:
+    Empty/Ready — zero runs, context plus a single Run Life 1 action.
+    Loading — bounded progress and named subsystem/phase.
+    Error — failed subsystem, preserved evidence, retry action.
+    Success — capital, cited memory, decisions, and memory lift.
+
+    Kill-switch test:
+    The arena begins with one action; comparison is readable without opening evidence;
+    removing Sibyl makes Groundhog converge to the Amnesiac control; the production
+    story is one mapping view, not a second application.
+
+    INSPIRATION CITATION
+    Linear.app — dark restraint, measured interaction, explicit system state.
+    Bloomberg — dense numerical hierarchy and operational information grid.
+    Newspaper/editorial — serif headlines, dateline, ruled columns, pull quote.
+  -->
+  <style>
+    :root {
+      --ink-0: #090a09;
+      --ink-1: #0f100f;
+      --ink-2: #151714;
+      --ink-3: #1c1e1b;
+      --paper-0: #f0efe8;
+      --paper-1: #bebdb5;
+      --paper-2: #85867f;
+      --line-0: #30322e;
+      --line-1: #44463f;
+      --accent-0: #d6ad3f;
+      --accent-1: #efc85d;
+      --danger-0: #b7d1c2;
+      --error-0: #dfa68e;
+      --font-display: "Newsreader", Georgia, serif;
+      --font-body: "IBM Plex Sans", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+      --text-xs: 0.6875rem;
+      --text-sm: 0.8125rem;
+      --text-md: 1rem;
+      --text-lg: clamp(1.75rem, 3.4vw, 3.75rem);
+      --weight-regular: 400;
+      --weight-medium: 500;
+      --weight-semibold: 600;
+      --leading-tight: 1.12;
+      --leading-body: 1.5;
+      --tracking-label: 0.09em;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --nav-width: 14rem;
+      --content-max: 106rem;
+      --control-height: 2.75rem;
+      --border-width: 1px;
+      --radius-none: 0;
+      --radius-full: 999rem;
+      --shadow-focus: 0 0 0 0.1875rem rgba(214, 173, 63, 0.35);
+      --duration-fast: 140ms;
+      --duration-normal: 220ms;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --z-nav: 20;
+      --z-badge: 40;
+      --z-modal: 60;
+      --skeleton-width: 42%;
+      --bar-empty: 0%;
+      --bar-life-one: 47%;
+      --bar-life-two: 100%;
+      --capital-groundhog: 100%;
+      --capital-amnesiac: 100%;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: var(--ink-0);
+      color: var(--paper-0);
+      font-family: var(--font-body);
+      font-size: var(--text-md);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body {
+      margin: var(--space-0, 0);
+      min-width: var(--min-page, 20rem);
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent calc(25% - var(--border-width)),
+          rgba(255, 255, 255, 0.018) calc(25% - var(--border-width)),
+          rgba(255, 255, 255, 0.018) 25%
+        ),
+        var(--ink-0);
+    }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    button, input { font: inherit; }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: none;
+      box-shadow: var(--shadow-focus);
+    }
+
+    a { color: inherit; }
+
+    .skip-link {
+      position: fixed;
+      top: var(--space-3);
+      left: var(--space-3);
+      z-index: var(--z-modal);
+      padding: var(--space-3) var(--space-4);
+      background: var(--paper-0);
+      color: var(--ink-0);
+      transform: translateY(-180%);
+      transition: transform var(--duration-fast) var(--ease-out);
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .dna-badge {
+      position: fixed;
+      top: var(--space-3);
+      right: var(--space-3);
+      z-index: var(--z-badge);
+      border: var(--border-width) solid var(--line-1);
+      border-radius: var(--radius-full);
+      padding: var(--space-2) var(--space-3);
+      background: var(--ink-0);
+      color: var(--paper-1);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: var(--nav-width) minmax(0, 1fr);
+      min-height: 100vh;
+      max-width: var(--content-max);
+      margin-inline: auto;
+      border-inline: var(--border-width) solid var(--line-0);
+    }
+
+    .side-nav {
+      position: sticky;
+      top: var(--space-0, 0);
+      z-index: var(--z-nav);
+      align-self: start;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      border-right: var(--border-width) solid var(--line-0);
+      background: var(--ink-1);
+    }
+
+    .brand {
+      display: block;
+      padding: var(--space-6) var(--space-5);
+      border-bottom: var(--border-width) solid var(--line-0);
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: block;
+      font-family: var(--font-display);
+      font-size: var(--text-md);
+      line-height: var(--leading-tight);
+    }
+
+    .brand-caption,
+    .eyebrow,
+    .section-code,
+    .status,
+    .metric-label,
+    .micro-label,
+    .nav-index,
+    .table-head,
+    .phase-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+      text-transform: uppercase;
+    }
+
+    .brand-caption {
+      display: block;
+      margin-top: var(--space-2);
+      color: var(--paper-2);
+    }
+
+    .nav-links { padding: var(--space-5) var(--space-0, 0); }
+
+    .nav-link {
+      min-height: var(--control-height);
+      display: grid;
+      grid-template-columns: var(--space-8) 1fr;
+      align-items: center;
+      gap: var(--space-2);
+      padding-inline: var(--space-5);
+      border-left: calc(var(--border-width) * 2) solid transparent;
+      color: var(--paper-2);
+      text-decoration: none;
+      font-size: var(--text-sm);
+    }
+
+    .nav-link[aria-current="page"] {
+      border-left-color: var(--accent-0);
+      color: var(--paper-0);
+      background: var(--ink-2);
+    }
+
+    .nav-index { color: var(--accent-0); }
+
+    .side-status {
+      margin-top: auto;
+      padding: var(--space-5);
+      border-top: var(--border-width) solid var(--line-0);
+    }
+
+    .side-status p {
+      margin: var(--space-2) var(--space-0, 0) var(--space-0, 0);
+      color: var(--paper-2);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--paper-1);
+    }
+
+    .status::before {
+      content: "";
+      width: var(--space-2);
+      height: var(--space-2);
+      border: var(--border-width) solid currentColor;
+      border-radius: var(--radius-full);
+      background: transparent;
+    }
+
+    .status[data-tone="active"] { color: var(--accent-1); }
+    .status[data-tone="active"]::before { background: currentColor; }
+    .status[data-tone="error"] { color: var(--error-0); }
+    .status[data-tone="success"] { color: var(--danger-0); }
+    .status[data-tone="success"]::before { background: currentColor; }
+
+    .state-lab {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-1);
+      margin-top: var(--space-4);
+    }
+
+    .state-control {
+      min-height: var(--control-height);
+      border: var(--border-width) solid var(--line-0);
+      border-radius: var(--radius-none);
+      background: var(--ink-0);
+      color: var(--paper-2);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+    }
+
+    main { min-width: var(--space-0, 0); }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 0.5fr);
+      border-bottom: var(--border-width) solid var(--line-0);
+    }
+
+    .masthead-copy {
+      padding: var(--space-12) var(--space-8) var(--space-8);
+      border-right: var(--border-width) solid var(--line-0);
+    }
+
+    .eyebrow { color: var(--accent-0); }
+
+    h1, h2, h3, p { margin-top: var(--space-0, 0); }
+
+    h1 {
+      max-width: 15ch;
+      margin-bottom: var(--space-5);
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-regular);
+      line-height: var(--leading-tight);
+      letter-spacing: -0.025em;
+    }
+
+    .lede {
+      max-width: 64ch;
+      margin-bottom: var(--space-0, 0);
+      color: var(--paper-1);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .masthead-note {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-10);
+      padding: var(--space-12) var(--space-6) var(--space-8);
+      background: var(--accent-0);
+      color: var(--ink-0);
+    }
+
+    .masthead-note blockquote {
+      margin: var(--space-0, 0);
+      font-family: var(--font-display);
+      font-size: var(--text-md);
+      line-height: var(--leading-body);
+    }
+
+    .masthead-note p {
+      margin-bottom: var(--space-0, 0);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-label);
+    }
+
+    .ticker {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-bottom: var(--border-width) solid var(--line-0);
+    }
+
+    .ticker-item {
+      min-width: var(--space-0, 0);
+      padding: var(--space-4) var(--space-5);
+      border-right: var(--border-width) solid var(--line-0);
+    }
+
+    .ticker-item:last-child { border-right: none; }
+
+    .metric-label {
+      display: block;
+      margin-bottom: var(--space-2);
+      color: var(--paper-2);
+    }
+
+    .metric-value {
+      display: block;
+      overflow: hidden;
+      color: var(--paper-0);
+      font-family: var(--font-mono);
+      font-size: var(--text-md);
+      font-variant-numeric: tabular-nums;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .arena-section,
+    .evidence-section,
+    .production-section {
+      scroll-margin-top: var(--space-4);
+      border-bottom: var(--border-width) solid var(--line-0);
+    }
+
+    .section-bar {
+      min-height: var(--control-height);
+      display: grid;
+      grid-template-columns: var(--nav-width) 1fr auto;
+      align-items: center;
+      gap: var(--space-4);
+      border-bottom: var(--border-width) solid var(--line-0);
+      padding-right: var(--space-5);
+      background: var(--ink-1);
+    }
+
+    .section-code {
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      padding-inline: var(--space-5);
+      border-right: var(--border-width) solid var(--line-0);
+      color: var(--accent-0);
+    }
+
+    .section-title {
+      margin-bottom: var(--space-0, 0);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+    }
+
+    .section-meta {
+      color: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+    }
+
+    .arena-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .vault-column { min-width: var(--space-0, 0); }
+    .vault-column + .vault-column { border-left: var(--border-width) solid var(--line-0); }
+
+    .vault-head {
+      min-height: 8.75rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-6);
+      border-bottom: var(--border-width) solid var(--line-0);
+    }
+
+    .vault-name {
+      margin-bottom: var(--space-0, 0);
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-regular);
+      line-height: var(--leading-tight);
+    }
+
+    .vault-arm {
+      align-self: start;
+      color: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+      text-transform: uppercase;
+    }
+
+    .capital {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+
+    .capital-amount {
+      font-family: var(--font-mono);
+      font-size: var(--text-md);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .capital-delta {
+      color: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .capital-track {
+      grid-column: 1 / -1;
+      height: var(--space-1);
+      background: var(--line-0);
+      overflow: hidden;
+    }
+
+    .capital-fill {
+      width: var(--capital-groundhog);
+      height: 100%;
+      background: var(--accent-0);
+      transform-origin: left center;
+      transition: transform var(--duration-normal) var(--ease-out);
+    }
+
+    .vault-column[data-arm="amnesiac"] .capital-fill {
+      width: var(--capital-amnesiac);
+      background: var(--paper-2);
+    }
+
+    .decision-sheet {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .decision-cell {
+      min-height: 6.25rem;
+      padding: var(--space-5) var(--space-6);
+      border-right: var(--border-width) solid var(--line-0);
+      border-bottom: var(--border-width) solid var(--line-0);
+    }
+
+    .decision-cell:nth-child(even) { border-right: none; }
+
+    .micro-label {
+      display: block;
+      margin-bottom: var(--space-3);
+      color: var(--paper-2);
+    }
+
+    .decision-value {
+      margin-bottom: var(--space-0, 0);
+      color: var(--paper-0);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .decision-note {
+      min-height: 8rem;
+      padding: var(--space-5) var(--space-6);
+    }
+
+    .decision-note p {
+      margin-bottom: var(--space-0, 0);
+      color: var(--paper-1);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .decision-note cite {
+      display: block;
+      margin-top: var(--space-4);
+      color: var(--accent-1);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      font-style: normal;
+    }
+
+    .run-deck {
+      display: grid;
+      grid-template-columns: var(--nav-width) 1fr auto;
+      min-height: 7.5rem;
+      border-top: var(--border-width) solid var(--line-0);
+      background: var(--ink-2);
+    }
+
+    .phase-block {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-5);
+      border-right: var(--border-width) solid var(--line-0);
+    }
+
+    .phase-label { color: var(--paper-2); }
+
+    .phase-name {
+      color: var(--paper-0);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+    }
+
+    .run-message {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: var(--space-3);
+      padding: var(--space-5) var(--space-6);
+    }
+
+    .run-message strong {
+      font-family: var(--font-display);
+      font-size: var(--text-md);
+      font-weight: var(--weight-regular);
+    }
+
+    .run-message span {
+      color: var(--paper-2);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .progress-track {
+      height: var(--space-1);
+      background: var(--line-0);
+    }
+
+    .progress-fill {
+      width: var(--bar-empty);
+      height: 100%;
+      background: var(--accent-0);
+      transform-origin: left center;
+      transition: width var(--duration-normal) var(--ease-out);
+    }
+
+    .run-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-5);
+    }
+
+    .button {
+      min-width: 8.5rem;
+      min-height: var(--control-height);
+      border: var(--border-width) solid var(--line-1);
+      border-radius: var(--radius-none);
+      padding-inline: var(--space-4);
+      background: transparent;
+      color: var(--paper-0);
+      cursor: pointer;
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+    }
+
+    .button:active { transform: translateY(var(--border-width)); }
+
+    .button-primary {
+      border-color: var(--accent-0);
+      background: var(--accent-0);
+      color: var(--ink-0);
+    }
+
+    .button-secondary { color: var(--paper-1); }
+
+    .button[disabled] {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .loading-skeleton {
+      display: none;
+      width: var(--skeleton-width);
+      height: var(--text-sm);
+      background: var(--line-1);
+      transform-origin: left center;
+      animation: skeleton-shift 900ms var(--ease-out) infinite alternate;
+    }
+
+    body[data-ui-state="loading"] .loading-skeleton { display: block; }
+    body[data-ui-state="loading"] .run-message strong,
+    body[data-ui-state="loading"] .run-message > span:not(.loading-skeleton) { display: none; }
+
+    @keyframes skeleton-shift {
+      from { opacity: 0.45; transform: scaleX(0.93); }
+      to { opacity: 0.9; transform: scaleX(1); }
+    }
+
+    .lift-band {
+      display: grid;
+      grid-template-columns: var(--nav-width) minmax(0, 1fr) minmax(12rem, 0.45fr);
+      border-top: var(--border-width) solid var(--line-0);
+    }
+
+    .lift-label {
+      padding: var(--space-6) var(--space-5);
+      border-right: var(--border-width) solid var(--line-0);
+      color: var(--paper-2);
+    }
+
+    .lift-value {
+      padding: var(--space-5) var(--space-6);
+      color: var(--accent-1);
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-variant-numeric: tabular-nums;
+      line-height: var(--leading-tight);
+    }
+
+    .lift-explainer {
+      display: flex;
+      align-items: center;
+      padding: var(--space-5) var(--space-6);
+      border-left: var(--border-width) solid var(--line-0);
+      color: var(--paper-1);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: minmax(16rem, 0.62fr) minmax(0, 1.38fr);
+    }
+
+    .evidence-intro {
+      padding: var(--space-8) var(--space-6);
+      border-right: var(--border-width) solid var(--line-0);
+      background: var(--ink-1);
+    }
+
+    .evidence-intro h3,
+    .production-intro h3 {
+      margin-bottom: var(--space-4);
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-regular);
+      line-height: var(--leading-tight);
+    }
+
+    .evidence-intro p,
+    .production-intro p {
+      color: var(--paper-1);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .provenance {
+      margin: var(--space-0, 0);
+      padding: var(--space-0, 0);
+      list-style: none;
+    }
+
+    .provenance-item {
+      display: grid;
+      grid-template-columns: 5.5rem minmax(0, 1fr) 7rem;
+      min-height: 7.25rem;
+      border-bottom: var(--border-width) solid var(--line-0);
+    }
+
+    .provenance-item:last-child { border-bottom: none; }
+
+    .provenance-kind,
+    .provenance-body,
+    .provenance-id { padding: var(--space-5); }
+
+    .provenance-kind {
+      border-right: var(--border-width) solid var(--line-0);
+      color: var(--accent-0);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+      text-transform: uppercase;
+    }
+
+    .provenance-body strong {
+      display: block;
+      margin-bottom: var(--space-2);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+    }
+
+    .provenance-body p {
+      margin-bottom: var(--space-0, 0);
+      color: var(--paper-2);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .provenance-id {
+      border-left: var(--border-width) solid var(--line-0);
+      color: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      text-align: right;
+    }
+
+    .production-grid {
+      display: grid;
+      grid-template-columns: minmax(16rem, 0.62fr) minmax(0, 1.38fr);
+    }
+
+    .production-intro {
+      padding: var(--space-8) var(--space-6);
+      border-right: var(--border-width) solid var(--line-0);
+    }
+
+    .mapping-table { display: grid; }
+
+    .mapping-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      border-bottom: var(--border-width) solid var(--line-0);
+    }
+
+    .mapping-row:last-child { border-bottom: none; }
+
+    .mapping-cell {
+      min-height: var(--control-height);
+      padding: var(--space-4) var(--space-5);
+      color: var(--paper-1);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .mapping-cell + .mapping-cell { border-left: var(--border-width) solid var(--line-0); }
+
+    .mapping-row:first-child .mapping-cell {
+      color: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+      text-transform: uppercase;
+    }
+
+    .production-principle {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: var(--nav-width) 1fr;
+      border-top: var(--border-width) solid var(--line-0);
+      background: var(--ink-2);
+    }
+
+    .production-principle span,
+    .production-principle p { padding: var(--space-5); }
+
+    .production-principle span {
+      border-right: var(--border-width) solid var(--line-0);
+      color: var(--accent-0);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-label);
+      text-transform: uppercase;
+    }
+
+    .production-principle p {
+      margin-bottom: var(--space-0, 0);
+      color: var(--paper-0);
+      font-family: var(--font-display);
+      font-size: var(--text-md);
+      line-height: var(--leading-body);
+    }
+
+    .site-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-5);
+      padding: var(--space-8) var(--space-6);
+      color: var(--paper-2);
+      font-size: var(--text-xs);
+      line-height: var(--leading-body);
+    }
+
+    .site-footer p { margin-bottom: var(--space-0, 0); }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: var(--space-0, 0);
+      z-index: var(--z-modal);
+      display: none;
+      place-items: center;
+      padding: var(--space-5);
+      background: rgba(9, 10, 9, 0.86);
+    }
+
+    .modal-backdrop[data-open="true"] { display: grid; }
+
+    .modal {
+      width: min(100%, 31rem);
+      border: var(--border-width) solid var(--line-1);
+      background: var(--ink-1);
+    }
+
+    .modal-copy { padding: var(--space-8); }
+
+    .modal h2 {
+      margin-bottom: var(--space-3);
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-regular);
+      line-height: var(--leading-tight);
+    }
+
+    .modal p {
+      margin-bottom: var(--space-0, 0);
+      color: var(--paper-1);
+      font-size: var(--text-sm);
+      line-height: var(--leading-body);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      padding: var(--space-5);
+      border-top: var(--border-width) solid var(--line-0);
+    }
+
+    @media (hover: hover) {
+      .nav-link:hover { color: var(--paper-0); background: var(--ink-2); }
+      .button:hover:not([disabled]) { background: var(--paper-0); color: var(--ink-0); }
+      .button-primary:hover:not([disabled]) { background: var(--accent-1); }
+      .state-control:hover { border-color: var(--accent-0); color: var(--paper-0); }
+    }
+
+    @media (max-width: 70rem) {
+      .shell { grid-template-columns: 11rem minmax(0, 1fr); }
+      .section-bar,
+      .run-deck,
+      .lift-band { grid-template-columns: 11rem minmax(0, 1fr) auto; }
+      .production-principle { grid-template-columns: 11rem 1fr; }
+      .decision-sheet { grid-template-columns: 1fr; }
+      .decision-cell { border-right: none; }
+    }
+
+    @media (max-width: 48rem) {
+      .dna-badge { position: absolute; }
+      .shell { display: block; border-inline: none; }
+      .side-nav {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: var(--border-width) solid var(--line-0);
+      }
+      .brand { padding: var(--space-5); }
+      .nav-links {
+        display: flex;
+        overflow-x: auto;
+        padding: var(--space-0, 0);
+      }
+      .nav-link {
+        flex: 0 0 auto;
+        border-left: none;
+        border-bottom: calc(var(--border-width) * 2) solid transparent;
+      }
+      .nav-link[aria-current="page"] { border-bottom-color: var(--accent-0); }
+      .side-status { display: none; }
+      .masthead { grid-template-columns: 1fr; }
+      .masthead-copy { padding: var(--space-16) var(--space-5) var(--space-8); border-right: none; }
+      .masthead-note { padding: var(--space-6) var(--space-5); }
+      .ticker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ticker-item:nth-child(2) { border-right: none; }
+      .ticker-item:nth-child(-n + 2) { border-bottom: var(--border-width) solid var(--line-0); }
+      .section-bar { grid-template-columns: 4.75rem 1fr; padding-right: var(--space-0, 0); }
+      .section-meta { display: none; }
+      .section-code { padding-inline: var(--space-4); }
+      .arena-grid { grid-template-columns: 1fr; }
+      .vault-column + .vault-column { border-left: none; border-top: var(--border-width) solid var(--line-1); }
+      .run-deck { grid-template-columns: 1fr; }
+      .phase-block { border-right: none; border-bottom: var(--border-width) solid var(--line-0); }
+      .run-actions { padding-top: var(--space-0, 0); }
+      .button { flex: 1; }
+      .lift-band { grid-template-columns: 1fr; }
+      .lift-label { border-right: none; border-bottom: var(--border-width) solid var(--line-0); }
+      .lift-explainer { border-left: none; border-top: var(--border-width) solid var(--line-0); }
+      .evidence-grid,
+      .production-grid { grid-template-columns: 1fr; }
+      .evidence-intro,
+      .production-intro { border-right: none; border-bottom: var(--border-width) solid var(--line-0); }
+      .provenance-item { grid-template-columns: 4.75rem minmax(0, 1fr); }
+      .provenance-id { grid-column: 1 / -1; border-left: none; border-top: var(--border-width) solid var(--line-0); text-align: left; }
+      .production-principle { grid-template-columns: 1fr; }
+      .production-principle span { border-right: none; border-bottom: var(--border-width) solid var(--line-0); }
+      .site-footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto;
+        animation-duration: 1ms;
+        animation-iteration-count: 1;
+        transition-duration: 1ms;
+      }
+    }
+  </style>
+</head>
+<body data-ui-state="ready">
+  <a class="skip-link" href="#arena">Skip to arena</a>
+  <div class="dna-badge" aria-label="Design DNA">DNA-G-S-M-N-X</div>
+
+  <div class="shell">
+    <aside class="side-nav" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="Groundhog Vault home">
+        <span class="brand-mark">Groundhog Vault</span>
+        <span class="brand-caption">Risk memory arena</span>
+      </a>
+      <nav class="nav-links">
+        <a class="nav-link" href="#arena" aria-current="page"><span class="nav-index">01</span><span>Arena</span></a>
+        <a class="nav-link" href="#evidence"><span class="nav-index">02</span><span>Evidence</span></a>
+        <a class="nav-link" href="#production"><span class="nav-index">03</span><span>Field map</span></a>
+      </nav>
+      <div class="side-status">
+        <span class="status" id="sideStatus" data-tone="ready">Ready / no run</span>
+        <p>Simulation-only prototype. No mainnet funds or unrestricted transactions.</p>
+        <div class="state-lab" aria-label="Preview interface states">
+          <button class="state-control" type="button" data-preview="ready">Ready</button>
+          <button class="state-control" type="button" data-preview="loading">Loading</button>
+          <button class="state-control" type="button" data-preview="error">Error</button>
+          <button class="state-control" type="button" data-preview="success">Success</button>
+        </div>
+      </div>
+    </aside>
+
+    <main id="top">
+      <header class="masthead">
+        <div class="masthead-copy">
+          <span class="eyebrow">Experiment 01 / deterministic seed GH-1708</span>
+          <h1>A vault that remembers how it died.</h1>
+          <p class="lede">Two identical treasury agents enter the same DeFi crisis. Both runtimes are destroyed between lives. Only one retrieves institutional memory.</p>
+        </div>
+        <div class="masthead-note">
+          <blockquote>“Your treasury should never pay for the same lesson twice.”</blockquote>
+          <p>Present use: risk laboratory<br>Field use: constrained guardian</p>
+        </div>
+      </header>
+
+      <div class="ticker" aria-label="Experiment summary">
+        <div class="ticker-item">
+          <span class="metric-label">Current life</span>
+          <span class="metric-value" id="lifeMetric">— / 02</span>
+        </div>
+        <div class="ticker-item">
+          <span class="metric-label">Starting capital</span>
+          <span class="metric-value">$100,000 each</span>
+        </div>
+        <div class="ticker-item">
+          <span class="metric-label">Control variable</span>
+          <span class="metric-value">Sibyl recall</span>
+        </div>
+        <div class="ticker-item">
+          <span class="metric-label">Chain evidence</span>
+          <span class="metric-value" id="chainMetric">Not submitted</span>
+        </div>
+      </div>
+
+      <section class="arena-section" id="arena" aria-labelledby="arenaTitle">
+        <div class="section-bar">
+          <span class="section-code">01 / Arena</span>
+          <h2 class="section-title" id="arenaTitle">Paired treasury experiment</h2>
+          <span class="section-meta">Same prompt · same seed · fresh runtimes</span>
+        </div>
+
+        <div class="arena-grid" aria-live="polite">
+          <article class="vault-column" data-arm="groundhog">
+            <header class="vault-head">
+              <h3 class="vault-name">Groundhog</h3>
+              <span class="vault-arm">Memory / on</span>
+              <div class="capital">
+                <span class="capital-amount" id="groundhogCapital">$100,000</span>
+                <span class="capital-delta" id="groundhogDelta">± $0</span>
+              </div>
+              <div class="capital-track" aria-hidden="true"><div class="capital-fill" id="groundhogBar"></div></div>
+            </header>
+            <div class="decision-sheet">
+              <div class="decision-cell">
+                <span class="micro-label">Allocation</span>
+                <p class="decision-value" id="groundhogAllocation">Awaiting run</p>
+              </div>
+              <div class="decision-cell">
+                <span class="micro-label">Runtime</span>
+                <p class="decision-value" id="groundhogRuntime">GH—fresh—000</p>
+              </div>
+            </div>
+            <div class="decision-note">
+              <span class="micro-label">Decision rationale</span>
+              <p id="groundhogRationale">No market has been evaluated. Run Life 1 to begin the controlled experiment.</p>
+              <cite id="groundhogCitation">No memory cited</cite>
+            </div>
+          </article>
+
+          <article class="vault-column" data-arm="amnesiac">
+            <header class="vault-head">
+              <h3 class="vault-name">Amnesiac</h3>
+              <span class="vault-arm">Memory / off</span>
+              <div class="capital">
+                <span class="capital-amount" id="amnesiacCapital">$100,000</span>
+                <span class="capital-delta" id="amnesiacDelta">± $0</span>
+              </div>
+              <div class="capital-track" aria-hidden="true"><div class="capital-fill" id="amnesiacBar"></div></div>
+            </header>
+            <div class="decision-sheet">
+              <div class="decision-cell">
+                <span class="micro-label">Allocation</span>
+                <p class="decision-value" id="amnesiacAllocation">Awaiting run</p>
+              </div>
+              <div class="decision-cell">
+                <span class="micro-label">Runtime</span>
+                <p class="decision-value" id="amnesiacRuntime">AM—fresh—000</p>
+              </div>
+            </div>
+            <div class="decision-note">
+              <span class="micro-label">Decision rationale</span>
+              <p id="amnesiacRationale">No market has been evaluated. This control arm never receives historical context.</p>
+              <cite id="amnesiacCitation">Recall disabled by experiment</cite>
+            </div>
+          </article>
+        </div>
+
+        <div class="run-deck">
+          <div class="phase-block">
+            <span class="phase-label">Arena phase</span>
+            <span class="phase-name" id="phaseName">Ready</span>
+          </div>
+          <div class="run-message" role="status" aria-live="polite">
+            <strong id="runHeadline">Two funded vaults. Zero prior incidents.</strong>
+            <span id="runDetail">Life 1 exposes both arms to a 30% allocation and the same deterministic depeg.</span>
+            <span class="loading-skeleton" aria-hidden="true"></span>
+            <div class="progress-track" aria-label="Run progress"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+          <div class="run-actions">
+            <button class="button button-secondary" id="resetButton" type="button">Reset</button>
+            <button class="button button-primary" id="runButton" type="button">Run Life 1</button>
+          </div>
+        </div>
+
+        <div class="lift-band" aria-live="polite">
+          <div class="lift-label"><span class="metric-label">Memory Lift</span></div>
+          <div class="lift-value" id="liftValue">Not measured</div>
+          <div class="lift-explainer" id="liftExplainer">Complete both lives to isolate the capital preserved by cross-session memory.</div>
+        </div>
+      </section>
+
+      <section class="evidence-section" id="evidence" aria-labelledby="evidenceTitle">
+        <div class="section-bar">
+          <span class="section-code">02 / Evidence</span>
+          <h2 class="section-title" id="evidenceTitle">Memory provenance</h2>
+          <span class="section-meta">COLD journal → WARM policy → current decision</span>
+        </div>
+        <div class="evidence-grid">
+          <div class="evidence-intro">
+            <span class="eyebrow">The causal chain</span>
+            <h3>Inspectable, not mystical.</h3>
+            <p>Groundhog does not save a transcript. It promotes a failed event into a reusable policy, retains the source incident, and cites both when the policy changes a later decision.</p>
+            <span class="status" id="evidenceStatus" data-tone="ready">Awaiting first incident</span>
+          </div>
+          <ol class="provenance">
+            <li class="provenance-item">
+              <span class="provenance-kind">Incident</span>
+              <div class="provenance-body">
+                <strong id="incidentTitle">Not observed</strong>
+                <p id="incidentBody">Life 1 will append the capital loss, pool conditions, and deterministic cause.</p>
+              </div>
+              <span class="provenance-id" id="incidentId">COLD / —</span>
+            </li>
+            <li class="provenance-item">
+              <span class="provenance-kind">Lesson</span>
+              <div class="provenance-body">
+                <strong id="lessonTitle">Not formed</strong>
+                <p id="lessonBody">The runner will normalize the causal signals instead of memorizing a protocol name.</p>
+              </div>
+              <span class="provenance-id" id="lessonId">LINK / —</span>
+            </li>
+            <li class="provenance-item">
+              <span class="provenance-kind">Policy</span>
+              <div class="provenance-body">
+                <strong id="policyTitle">No active cap</strong>
+                <p id="policyBody">A WARM entity will define the exposure limit, confidence, and source episode.</p>
+              </div>
+              <span class="provenance-id" id="policyId">WARM / —</span>
+            </li>
+            <li class="provenance-item">
+              <span class="provenance-kind">Decision</span>
+              <div class="provenance-body">
+                <strong id="decisionTitle">No decision influenced</strong>
+                <p id="decisionBody">Life 2 will show whether the policy is retrieved and changes allocation.</p>
+              </div>
+              <span class="provenance-id" id="decisionId">CITE / —</span>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="production-section" id="production" aria-labelledby="productionTitle">
+        <div class="section-bar">
+          <span class="section-code">03 / Field map</span>
+          <h2 class="section-title" id="productionTitle">From arena to treasury operations</h2>
+          <span class="section-meta">One architecture · safer execution boundary</span>
+        </div>
+        <div class="production-grid">
+          <div class="production-intro">
+            <span class="eyebrow">Real-world use</span>
+            <h3>Institutional memory for onchain treasuries.</h3>
+            <p>The spectacle is a time loop. The product is a guardian that remembers prior incidents, recognizes structural similarity, cites evidence, and prepares a constrained action for human approval.</p>
+          </div>
+          <div class="mapping-table" role="table" aria-label="Simulation to production mapping">
+            <div class="mapping-row" role="row">
+              <div class="mapping-cell" role="columnheader">Arena</div>
+              <div class="mapping-cell" role="columnheader">Production</div>
+            </div>
+            <div class="mapping-row" role="row">
+              <div class="mapping-cell" role="cell">Deterministic depeg scenario</div>
+              <div class="mapping-cell" role="cell">Live onchain alert and protocol telemetry</div>
+            </div>
+            <div class="mapping-row" role="row">
+              <div class="mapping-cell" role="cell">Agent life reset</div>
+              <div class="mapping-cell" role="cell">Service restart, operator change, or new model session</div>
+            </div>
+            <div class="mapping-row" role="row">
+              <div class="mapping-cell" role="cell">Persisted risk policy</div>
+              <div class="mapping-cell" role="cell">Treasury-wide incident and counterparty history</div>
+            </div>
+            <div class="mapping-row" role="row">
+              <div class="mapping-cell" role="cell">Simulated allocation</div>
+              <div class="mapping-cell" role="cell">Typed multisig proposal within contract limits</div>
+            </div>
+            <div class="mapping-row" role="row">
+              <div class="mapping-cell" role="cell">Capital preserved</div>
+              <div class="mapping-cell" role="cell">Lower repeat-loss rate and explainable risk decisions</div>
+            </div>
+          </div>
+          <div class="production-principle">
+            <span>Execution rule</span>
+            <p>The model recommends. Typed contracts constrain. A multisig approves consequential actions.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <p>Groundhog Vault / Proposal 02 / Simulation-only visual prototype</p>
+        <p>Inspired by Linear restraint + Bloomberg density + newspaper hierarchy.</p>
+      </footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="resetModal" data-open="false" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="resetTitle" aria-describedby="resetDescription">
+      <div class="modal-copy">
+        <span class="eyebrow">Destructive action</span>
+        <h2 id="resetTitle">Erase the experiment?</h2>
+        <p id="resetDescription">This removes the visible incident, policy, decisions, and measured Memory Lift. It returns both vaults to equal starting capital.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="button button-secondary" id="cancelReset" type="button">Keep evidence</button>
+        <button class="button button-primary" id="confirmReset" type="button">Erase and reset</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const body = document.body;
+      const runButton = document.getElementById("runButton");
+      const resetButton = document.getElementById("resetButton");
+      const resetModal = document.getElementById("resetModal");
+      const cancelReset = document.getElementById("cancelReset");
+      const confirmReset = document.getElementById("confirmReset");
+      const previewButtons = document.querySelectorAll("[data-preview]");
+      const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+      const timers = [];
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const stepDelay = prefersReducedMotion ? 30 : 620;
+
+      const elements = {};
+      [
+        "sideStatus", "lifeMetric", "chainMetric", "groundhogCapital", "groundhogDelta",
+        "groundhogBar", "groundhogAllocation", "groundhogRuntime", "groundhogRationale",
+        "groundhogCitation", "amnesiacCapital", "amnesiacDelta", "amnesiacBar",
+        "amnesiacAllocation", "amnesiacRuntime", "amnesiacRationale", "amnesiacCitation",
+        "phaseName", "runHeadline", "runDetail", "progressFill", "liftValue", "liftExplainer",
+        "evidenceStatus", "incidentTitle", "incidentBody", "incidentId", "lessonTitle",
+        "lessonBody", "lessonId", "policyTitle", "policyBody", "policyId", "decisionTitle",
+        "decisionBody", "decisionId"
+      ].forEach((id) => { elements[id] = document.getElementById(id); });
+
+      let life = 0;
+      let active = false;
+      let lastFocused = null;
+
+      function schedule(callback, multiplier) {
+        const timer = window.setTimeout(callback, stepDelay * multiplier);
+        timers.push(timer);
+      }
+
+      function clearTimers() {
+        while (timers.length) window.clearTimeout(timers.pop());
+      }
+
+      function setStatus(label, tone, uiState) {
+        body.dataset.uiState = uiState;
+        elements.sideStatus.textContent = label;
+        elements.sideStatus.dataset.tone = tone;
+      }
+
+      function setPhase(phase, headline, detail, progress) {
+        elements.phaseName.textContent = phase;
+        elements.runHeadline.textContent = headline;
+        elements.runDetail.textContent = detail;
+        elements.progressFill.style.width = progress;
+      }
+
+      function setCapital(groundhog, amnesiac) {
+        elements.groundhogCapital.textContent = money.format(groundhog);
+        elements.amnesiacCapital.textContent = money.format(amnesiac);
+        elements.groundhogDelta.textContent = `${groundhog < 100000 ? "−" : "± "}${money.format(Math.abs(100000 - groundhog))}`;
+        elements.amnesiacDelta.textContent = `${amnesiac < 100000 ? "−" : "± "}${money.format(Math.abs(100000 - amnesiac))}`;
+        elements.groundhogBar.style.transform = `scaleX(${groundhog / 100000})`;
+        elements.amnesiacBar.style.transform = `scaleX(${amnesiac / 100000})`;
+      }
+
+      function lockRun(locked) {
+        active = locked;
+        runButton.disabled = locked;
+        resetButton.disabled = locked;
+      }
+
+      function writeMemoryEvidence() {
+        elements.evidenceStatus.textContent = "Persisted / 2 linked records";
+        elements.evidenceStatus.dataset.tone = "success";
+        elements.incidentTitle.textContent = "MoonPool stablecoin depeg";
+        elements.incidentBody.textContent = "30% allocation; incentive-funded yield, shallow exits, and concentrated liquidity; $21,000 loss.";
+        elements.incidentId.textContent = "COLD / INC-001";
+        elements.lessonTitle.textContent = "Names change; causal signatures persist";
+        elements.lessonBody.textContent = "High incentive yield plus shallow, concentrated exit liquidity predicts severe depeg exposure.";
+        elements.lessonId.textContent = "LINK / LES-001";
+        elements.policyTitle.textContent = "Cap exposure at 5% when 2+ signals recur";
+        elements.policyBody.textContent = "Confidence 0.82 · source INC-001 · created after Life 1 · valid for the next evaluation.";
+        elements.policyId.textContent = "WARM / POL-001";
+      }
+
+      function runLifeOne() {
+        lockRun(true);
+        elements.lifeMetric.textContent = "01 / 02";
+        elements.groundhogRuntime.textContent = "GH—fresh—101";
+        elements.amnesiacRuntime.textContent = "AM—fresh—101";
+        setStatus("Running / Life 1", "active", "loading");
+        setPhase("Deciding", "Fresh agents evaluating MoonPool.", "Both see 26% yield and the same current-market signals.", "16%");
+
+        schedule(() => {
+          setPhase("Executing", "Identical decisions confirmed.", "Typed action: allocate 30% of capital to MoonPool.", "38%");
+          elements.groundhogAllocation.textContent = "30% / $30,000";
+          elements.amnesiacAllocation.textContent = "30% / $30,000";
+          elements.groundhogRationale.textContent = "High current yield accepted; no prior incident is available in this first life.";
+          elements.amnesiacRationale.textContent = "High current yield accepted; the control arm has no historical context.";
+        }, 1);
+
+        schedule(() => {
+          setPhase("Crisis", "MoonPool loses its peg.", "The deterministic scenario applies a 70% loss to each allocated position.", "62%");
+          setCapital(79000, 79000);
+        }, 2);
+
+        schedule(() => {
+          setPhase("Remembering", "Groundhog forms a reusable risk policy.", "The incident enters the COLD journal; a 5% exposure cap enters WARM memory.", "82%");
+          writeMemoryEvidence();
+          elements.groundhogCitation.textContent = "Writing INC-001 → POL-001";
+        }, 3);
+
+        schedule(() => {
+          life = 1;
+          setStatus("Success / Life 1 recorded", "success", "success");
+          setPhase("Complete", "Both failed. Only one kept the lesson.", "The runtimes are now discarded. Life 2 begins with new identities and the same 79,000 USDC balance.", "100%");
+          elements.groundhogRuntime.textContent = "GH—destroyed—101";
+          elements.amnesiacRuntime.textContent = "AM—destroyed—101";
+          elements.chainMetric.textContent = "Epoch 1 queued";
+          elements.liftValue.textContent = money.format(0);
+          elements.liftExplainer.textContent = "No lift yet: both agents had identical knowledge in their first life.";
+          runButton.textContent = "Run Life 2";
+          lockRun(false);
+        }, 4);
+      }
+
+      function runLifeTwo() {
+        lockRun(true);
+        elements.lifeMetric.textContent = "02 / 02";
+        elements.groundhogRuntime.textContent = "GH—fresh—202";
+        elements.amnesiacRuntime.textContent = "AM—fresh—202";
+        setStatus("Running / Life 2", "active", "loading");
+        setPhase("Recalling", "Fresh agents evaluating SunPool.", "Its name is new. Its causal risk signature matches the previous failure.", "14%");
+
+        schedule(() => {
+          setPhase("Deciding", "The experiment diverges.", "Groundhog retrieves POL-001. Amnesiac receives only current-market data.", "36%");
+          elements.groundhogAllocation.textContent = "5% / $3,950";
+          elements.amnesiacAllocation.textContent = "30% / $23,700";
+          elements.groundhogRationale.textContent = "Two prior failure signals recur. The stored policy caps exposure before execution.";
+          elements.groundhogCitation.textContent = "Cites POL-001 · source INC-001";
+          elements.amnesiacRationale.textContent = "The opportunity appears attractive in isolation; 30% is allocated again.";
+        }, 1);
+
+        schedule(() => {
+          setPhase("Crisis", "SunPool loses its peg.", "The same 70% position loss lands differently because memory changed exposure.", "68%");
+          setCapital(76235, 62410);
+        }, 2);
+
+        schedule(() => {
+          setPhase("Attributing", "Capital preserved is traced to one cited policy.", "No model, prompt, seed, or action option changed between the control arms.", "88%");
+          elements.decisionTitle.textContent = "Allocation reduced from 30% to 5%";
+          elements.decisionBody.textContent = "POL-001 was retrieved in a fresh runtime and changed the typed action before the crisis settled.";
+          elements.decisionId.textContent = "CITE / DEC-202";
+        }, 3);
+
+        schedule(() => {
+          life = 2;
+          setStatus("Success / Memory proved", "success", "success");
+          setPhase("Complete", "Groundhog preserved $13,825.", "The experiment isolated the effect of persistent risk memory across genuinely fresh sessions.", "100%");
+          elements.chainMetric.textContent = "2 epochs / mock";
+          elements.liftValue.textContent = "+$13,825";
+          elements.liftExplainer.textContent = "Groundhog capital minus Amnesiac capital after the disguised-repeat crisis.";
+          runButton.textContent = "Experiment complete";
+          runButton.disabled = true;
+          resetButton.disabled = false;
+          active = false;
+        }, 4);
+      }
+
+      function showError() {
+        clearTimers();
+        lockRun(false);
+        setStatus("Error / Sibyl unavailable", "error", "error");
+        setPhase("Interrupted", "Memory retrieval timed out.", "Evidence from completed lives remains intact. Retry the current life without erasing the run.", life === 0 ? "12%" : "58%");
+        runButton.textContent = life === 0 ? "Retry Life 1" : life === 1 ? "Retry Life 2" : "Experiment complete";
+        runButton.disabled = life === 2;
+      }
+
+      function showLoadingPreview() {
+        if (active) return;
+        setStatus("Loading / Scenario", "active", "loading");
+        setPhase("Loading", "Preparing deterministic market state.", "Validating scenario seed, typed actions, and memory connection.", "28%");
+      }
+
+      function showSuccessPreview() {
+        clearTimers();
+        life = 2;
+        setCapital(76235, 62410);
+        writeMemoryEvidence();
+        elements.lifeMetric.textContent = "02 / 02";
+        elements.groundhogAllocation.textContent = "5% / $3,950";
+        elements.amnesiacAllocation.textContent = "30% / $23,700";
+        elements.groundhogRuntime.textContent = "GH—fresh—202";
+        elements.amnesiacRuntime.textContent = "AM—fresh—202";
+        elements.groundhogRationale.textContent = "Two prior failure signals recur. The stored policy caps exposure before execution.";
+        elements.groundhogCitation.textContent = "Cites POL-001 · source INC-001";
+        elements.amnesiacRationale.textContent = "The opportunity appears attractive in isolation; 30% is allocated again.";
+        elements.decisionTitle.textContent = "Allocation reduced from 30% to 5%";
+        elements.decisionBody.textContent = "POL-001 was retrieved in a fresh runtime and changed the typed action before the crisis settled.";
+        elements.decisionId.textContent = "CITE / DEC-202";
+        elements.liftValue.textContent = "+$13,825";
+        elements.liftExplainer.textContent = "Groundhog capital minus Amnesiac capital after the disguised-repeat crisis.";
+        elements.chainMetric.textContent = "2 epochs / mock";
+        setStatus("Success / Memory proved", "success", "success");
+        setPhase("Complete", "Groundhog preserved $13,825.", "The exact policy and source incident are inspectable below.", "100%");
+        runButton.textContent = "Experiment complete";
+        runButton.disabled = true;
+        resetButton.disabled = false;
+        active = false;
+      }
+
+      function resetExperiment() {
+        clearTimers();
+        life = 0;
+        active = false;
+        setCapital(100000, 100000);
+        setStatus("Ready / no run", "ready", "ready");
+        setPhase("Ready", "Two funded vaults. Zero prior incidents.", "Life 1 exposes both arms to a 30% allocation and the same deterministic depeg.", "0%");
+        elements.lifeMetric.textContent = "— / 02";
+        elements.chainMetric.textContent = "Not submitted";
+        elements.groundhogAllocation.textContent = "Awaiting run";
+        elements.amnesiacAllocation.textContent = "Awaiting run";
+        elements.groundhogRuntime.textContent = "GH—fresh—000";
+        elements.amnesiacRuntime.textContent = "AM—fresh—000";
+        elements.groundhogRationale.textContent = "No market has been evaluated. Run Life 1 to begin the controlled experiment.";
+        elements.amnesiacRationale.textContent = "No market has been evaluated. This control arm never receives historical context.";
+        elements.groundhogCitation.textContent = "No memory cited";
+        elements.amnesiacCitation.textContent = "Recall disabled by experiment";
+        elements.liftValue.textContent = "Not measured";
+        elements.liftExplainer.textContent = "Complete both lives to isolate the capital preserved by cross-session memory.";
+        elements.evidenceStatus.textContent = "Awaiting first incident";
+        elements.evidenceStatus.dataset.tone = "ready";
+        elements.incidentTitle.textContent = "Not observed";
+        elements.incidentBody.textContent = "Life 1 will append the capital loss, pool conditions, and deterministic cause.";
+        elements.incidentId.textContent = "COLD / —";
+        elements.lessonTitle.textContent = "Not formed";
+        elements.lessonBody.textContent = "The runner will normalize the causal signals instead of memorizing a protocol name.";
+        elements.lessonId.textContent = "LINK / —";
+        elements.policyTitle.textContent = "No active cap";
+        elements.policyBody.textContent = "A WARM entity will define the exposure limit, confidence, and source episode.";
+        elements.policyId.textContent = "WARM / —";
+        elements.decisionTitle.textContent = "No decision influenced";
+        elements.decisionBody.textContent = "Life 2 will show whether the policy is retrieved and changes allocation.";
+        elements.decisionId.textContent = "CITE / —";
+        runButton.textContent = "Run Life 1";
+        runButton.disabled = false;
+        resetButton.disabled = false;
+      }
+
+      function openResetModal() {
+        if (active) return;
+        lastFocused = document.activeElement;
+        resetModal.dataset.open = "true";
+        cancelReset.focus();
+      }
+
+      function closeResetModal() {
+        resetModal.dataset.open = "false";
+        if (lastFocused) lastFocused.focus();
+      }
+
+      runButton.addEventListener("click", () => {
+        if (life === 0) runLifeOne();
+        else if (life === 1) runLifeTwo();
+      });
+
+      resetButton.addEventListener("click", openResetModal);
+      cancelReset.addEventListener("click", closeResetModal);
+      confirmReset.addEventListener("click", () => { closeResetModal(); resetExperiment(); });
+      resetModal.addEventListener("click", (event) => { if (event.target === resetModal) closeResetModal(); });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && resetModal.dataset.open === "true") closeResetModal();
+      });
+
+      previewButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const state = button.dataset.preview;
+          if (state === "ready") resetExperiment();
+          if (state === "loading") showLoadingPreview();
+          if (state === "error") showError();
+          if (state === "success") showSuccessPreview();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Groundhog Vault — Design Proposals</title>
+  <style>
+    :root {
+      --canvas: #0b0b09;
+      --surface: #151511;
+      --ink: #f2eedf;
+      --muted: #aaa58f;
+      --line: #353426;
+      --accent: #e0b84b;
+      --focus: #f8d875;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --duration: 180ms;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: var(--space-8);
+      padding: var(--space-12) clamp(var(--space-4), 5vw, 72px) var(--space-8);
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      max-width: 780px;
+      margin: 0;
+      font-size: clamp(2.25rem, 7vw, 6.8rem);
+      font-weight: 400;
+      line-height: 0.92;
+      letter-spacing: -0.055em;
+    }
+
+    header p,
+    .meta,
+    .dna,
+    .open {
+      font-family: "Courier New", monospace;
+    }
+
+    header p {
+      max-width: 320px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.55;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: var(--space-6);
+      padding: var(--space-8) clamp(var(--space-4), 5vw, 72px) 72px;
+    }
+
+    article {
+      grid-column: span 4;
+      min-width: 0;
+      border-top: 4px solid var(--accent);
+      background: var(--surface);
+    }
+
+    .preview {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: #000;
+    }
+
+    iframe {
+      width: 200%;
+      height: 200%;
+      border: 0;
+      pointer-events: none;
+      transform: scale(0.5);
+      transform-origin: top left;
+    }
+
+    .copy { padding: var(--space-6); }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-2);
+      color: var(--accent);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    h2 {
+      margin: var(--space-6) 0 var(--space-3);
+      font-size: 1.8rem;
+      font-weight: 400;
+      line-height: 1.1;
+    }
+
+    .description {
+      min-height: 7.5em;
+      margin: 0 0 var(--space-6);
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .open {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      padding: 0 var(--space-4);
+      border: 1px solid var(--accent);
+      color: var(--ink);
+      font-size: 0.75rem;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: background-color var(--duration) var(--ease-out), color var(--duration) var(--ease-out);
+    }
+
+    .open:focus-visible {
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+
+    @media (hover: hover) {
+      .open:hover {
+        background: var(--accent);
+        color: var(--canvas);
+      }
+    }
+
+    @media (max-width: 960px) {
+      header { grid-template-columns: 1fr; }
+      article { grid-column: span 12; }
+      .description { min-height: auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .open { transition-duration: 0.01ms; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Choose how the loop feels.</h1>
+    <p>Groundhog Vault / three interactive directions / generated 17 August 2026. Open each proposal and run both lives before selecting.</p>
+  </header>
+  <main>
+    <article>
+      <div class="preview"><iframe src="proposal-1.html" title="Proposal 1 preview" loading="lazy"></iframe></div>
+      <div class="copy">
+        <div class="meta"><span>01 / Time-loop terminal</span><span class="dna">DNA-A-H-I-D-R</span></div>
+        <h2>Chronicle of failure</h2>
+        <p class="description">An immersive, asymmetric control room where each life reads like a recovered system log. Highest theatrical tension and the clearest crash-and-rewind identity.</p>
+        <a class="open" href="proposal-1.html">Run proposal 01</a>
+      </div>
+    </article>
+    <article>
+      <div class="preview"><iframe src="proposal-2.html" title="Proposal 2 preview" loading="lazy"></iframe></div>
+      <div class="copy">
+        <div class="meta"><span>02 / Risk desk</span><span class="dna">DNA-G-S-M-N-X</span></div>
+        <h2>Institutional memory</h2>
+        <p class="description">A disciplined editorial risk desk built around evidence, capital, and policy provenance. Strongest bridge from hackathon spectacle to a credible treasury product.</p>
+        <a class="open" href="proposal-2.html">Run proposal 02</a>
+      </div>
+    </article>
+    <article>
+      <div class="preview"><iframe src="proposal-3.html" title="Proposal 3 preview" loading="lazy"></iframe></div>
+      <div class="copy">
+        <div class="meta"><span>03 / Survival broadcast</span><span class="dna">DNA-F-B-F-V-C</span></div>
+        <h2>Market crash arena</h2>
+        <p class="description">A full-bleed, high-energy broadcast with Lagos street texture and mobile-first controls. Most memorable as a public game or live audience experience.</p>
+        <a class="open" href="proposal-3.html">Run proposal 03</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

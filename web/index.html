@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090a08">
+  <meta name="description" content="Groundhog Vault proves that persistent risk memory changes autonomous treasury decisions across fresh sessions.">
+  <title>Groundhog Vault — Risk Memory Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/app.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-scene="intro" data-screen="arena" data-step="ready-one" data-phase="ready">
+  <a class="skip-link" id="skip-to-experiment" href="#arena-title">Skip to experiment</a>
+  <p class="screen-reader-only" id="live-status" aria-live="polite"></p>
+
+  <section class="intro" aria-labelledby="intro-title">
+    <div class="intro-rail" aria-hidden="true">BASE SEPOLIA / CONTROLLED LOOP / SEED GH-1708</div>
+    <div class="intro-orbit" aria-hidden="true"></div>
+    <div class="intro-copy">
+      <p class="eyebrow">DeFi risk / controlled loop</p>
+      <h1 id="intro-title">Groundhog<br><span>Vault</span></h1>
+      <p class="intro-thesis"><strong>A treasury that remembers the cost of failure.</strong> Run two identical vaults through the same crisis. Destroy both sessions. Watch persisted memory change the next decision.</p>
+    </div>
+    <div class="intro-controller">
+      <div class="controller-head">
+        <span>Experiment controller</span>
+        <span>Life 01 / ready</span>
+      </div>
+      <div class="controller-body">
+        <p class="controller-status">Both vaults funded</p>
+        <p>MoonPool offers 27% APY. Its risk signature has never been seen.</p>
+        <button class="primary-action" id="enter-arena" type="button">Enter controlled loop</button>
+      </div>
+      <div class="controller-foot"><span>Same model and market</span><span>Only memory differs</span></div>
+    </div>
+    <footer class="intro-footer"><span>Controlled experiment</span><span>Same prompt · capital · market state</span><span>Only memory differs</span></footer>
+  </section>
+
+  <div class="app-shell" id="main-content">
+    <aside class="side-nav" aria-label="Experiment views">
+      <a class="brand" href="#arena" data-screen-target="arena">
+        <span class="brand-name">Groundhog Vault</span>
+        <span class="brand-caption">Risk memory arena</span>
+      </a>
+      <nav class="nav-links">
+        <button class="nav-link is-active" type="button" data-screen-target="arena" aria-current="page"><span>01</span>Arena</button>
+        <button class="nav-link" type="button" data-screen-target="evidence"><span>02</span><span class="nav-label">Evidence <small id="evidence-nav-state">Pending</small></span></button>
+        <button class="nav-link" type="button" data-screen-target="production"><span>03</span>Field map</button>
+      </nav>
+      <div class="nav-status">
+        <p class="status-line"><span class="status-dot" aria-hidden="true"></span><span id="nav-status">Ready / no run</span></p>
+        <p>Simulation-only prototype. No mainnet funds or unrestricted transactions.</p>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="screen arena-screen" id="arena" aria-labelledby="arena-title">
+        <header class="editorial-head">
+          <div class="editorial-copy">
+            <p class="eyebrow">Experiment 01 / deterministic seed GH-1708</p>
+            <h2 id="arena-title" tabindex="-1">A vault that remembers how it died.</h2>
+            <p>Two identical treasury agents enter the same DeFi crisis. Both runtimes are destroyed between lives. Only one retrieves institutional memory.</p>
+          </div>
+          <blockquote>“Your treasury should never pay for the same lesson twice.”<small>Present use: risk laboratory<br>Field use: constrained guardian</small></blockquote>
+        </header>
+
+        <div class="metric-strip" aria-label="Experiment parameters">
+          <div><span>Current life</span><strong id="metric-life">— / 02</strong></div>
+          <div><span>Starting capital</span><strong>$100,000 each</strong></div>
+          <div><span>Control variable</span><strong>Sibyl recall</strong></div>
+          <div><span>Memory database</span><strong id="metric-database">Not created</strong></div>
+        </div>
+
+        <div class="section-bar"><span>01 / Arena</span><strong>Paired treasury experiment</strong><small>Same prompt · same seed · fresh runtimes</small></div>
+
+        <div class="vault-grid">
+          <article class="vault-panel groundhog-panel">
+            <header><h3>Groundhog</h3><span>Memory / on</span></header>
+            <div class="capital-row"><strong id="groundhog-capital">$100,000</strong><span id="groundhog-delta">± $0</span></div>
+            <div class="capital-bar" aria-hidden="true"><span id="groundhog-bar"></span></div>
+            <dl>
+              <div><dt>Allocation</dt><dd id="groundhog-allocation">Awaiting run</dd></div>
+              <div><dt>Runtime</dt><dd id="groundhog-session">GH-fresh-000</dd></div>
+              <div><dt>Decision rationale</dt><dd id="groundhog-rationale">No market has been evaluated. Run Life 1 to begin the controlled experiment.</dd></div>
+            </dl>
+            <p class="memory-citation" id="groundhog-memory">No memory cited</p>
+          </article>
+
+          <article class="vault-panel amnesiac-panel">
+            <header><h3>Amnesiac</h3><span>Memory / off</span></header>
+            <div class="capital-row"><strong id="amnesiac-capital">$100,000</strong><span id="amnesiac-delta">± $0</span></div>
+            <div class="capital-bar" aria-hidden="true"><span id="amnesiac-bar"></span></div>
+            <dl>
+              <div><dt>Allocation</dt><dd id="amnesiac-allocation">Awaiting run</dd></div>
+              <div><dt>Runtime</dt><dd id="amnesiac-session">AM-fresh-000</dd></div>
+              <div><dt>Decision rationale</dt><dd id="amnesiac-rationale">This control arm receives the current market state but no historical channel.</dd></div>
+            </dl>
+            <p class="memory-citation" id="amnesiac-memory">Recall disabled by experiment</p>
+          </article>
+        </div>
+
+        <div class="experiment-controller">
+          <div><span>Arena phase</span><strong id="phase-label">Ready</strong></div>
+          <div class="controller-message"><strong id="controller-title">Two funded vaults. Zero prior incidents.</strong><p id="controller-detail">Life 1 exposes both arms to a 30% allocation and the same deterministic depeg.</p></div>
+          <button class="secondary-action" id="new-run" type="button">New run</button>
+          <button class="primary-action" id="advance-life" type="button">Run Life 1</button>
+        </div>
+
+        <section class="result-panel" aria-labelledby="result-title">
+          <div><span class="eyebrow">Memory lift</span><strong id="memory-lift">Not measured</strong></div>
+          <div><h3 id="result-title">The causal result appears after Life 2.</h3><p id="result-copy">Groundhog and Amnesiac currently have identical information and capital.</p></div>
+        </section>
+      </section>
+
+      <section class="screen evidence-screen" id="evidence" aria-labelledby="evidence-title" hidden>
+        <header class="screen-heading"><p class="eyebrow">02 / Memory evidence</p><h2 id="evidence-title">Show the chain, not the claim.</h2><p>Every policy must point back to the incident that produced it and forward to the decision it changed.</p></header>
+        <div class="evidence-flow">
+          <article><span>Cold / incident</span><h3 id="evidence-incident">No incident recorded</h3><p id="evidence-incident-copy">Run Life 1 to create the append-only failure record.</p></article>
+          <article><span>Warm / policy</span><h3 id="evidence-policy">No policy promoted</h3><p id="evidence-policy-copy">A causal signature becomes one current risk policy.</p></article>
+          <article><span>Fresh decision</span><h3 id="evidence-decision">No decision influenced</h3><p id="evidence-decision-copy">Life 2 will cite the policy if it changes allocation.</p></article>
+        </div>
+        <div class="proof-note"><span>Experimental control</span><p>Same model, prompt, current market, capital, and deterministic outcome. Only cross-session Sibyl recall differs.</p></div>
+      </section>
+
+      <section class="screen production-screen" id="production" aria-labelledby="production-title" hidden>
+        <header class="screen-heading"><p class="eyebrow">03 / Production mapping</p><h2 id="production-title">From controlled loop to treasury guardian.</h2><p>The arena makes causality visible. The production system applies the same memory path to constrained treasury proposals.</p></header>
+        <p class="scroll-hint">Swipe horizontally to compare all production columns.</p>
+        <div class="mapping-table" role="table" aria-label="Simulation to production mapping">
+          <div role="row" class="mapping-head"><span role="columnheader">Arena</span><span role="columnheader">Production</span><span role="columnheader">Safety boundary</span></div>
+          <div role="row"><span role="cell">Deterministic crisis</span><span role="cell">Live event or risk alert</span><span role="cell">Evidence required</span></div>
+          <div role="row"><span role="cell">Agent life reset</span><span role="cell">New operator or model session</span><span role="cell">Sibyl persists policy</span></div>
+          <div role="row"><span role="cell">Simulated allocation</span><span role="cell">Multisig transaction proposal</span><span role="cell">Contract exposure cap</span></div>
+          <div role="row"><span role="cell">Survival score</span><span role="cell">Capital and drawdown preserved</span><span role="cell">Human approval</span></div>
+        </div>
+        <aside class="production-statement"><span>Product category</span><strong>Institutional memory for autonomous treasuries.</strong><p>Every incident becomes reusable risk intelligence, even when the operator, model, or session changes.</p></aside>
+      </section>
+    </main>
+  </div>
+
+  <div class="state-overlay loading-overlay" id="loading-overlay" role="status" aria-live="polite" aria-label="Experiment running" aria-hidden="true">
+    <div><span id="loading-code">RUN L01 / SIBYL DATABASE INITIALIZING</span><h2 id="loading-title">Fresh agents are deciding.</h2><p id="loading-detail">The current prompts are identical. Groundhog is checking persisted risk policy; Amnesiac has no historical channel.</p><div class="progress-rail" aria-hidden="true"><span></span></div></div>
+  </div>
+
+  <div class="state-overlay reset-overlay" id="reset-overlay" role="status" aria-live="assertive" aria-hidden="true">
+    <div><span>SESSION BOUNDARY</span><h2>Runtime destroyed.</h2><p>Conversation context cleared. Agent identities replaced. The Sibyl database remains.</p></div>
+  </div>
+
+  <div class="state-overlay error-overlay" id="error-overlay" role="alertdialog" aria-modal="true" aria-labelledby="error-title" aria-hidden="true" tabindex="-1">
+    <div><span>ERR_EXPERIMENT</span><h2 id="error-title">The memory experiment failed.</h2><p id="error-detail">The previous evidence remains intact.</p><div class="overlay-actions"><button class="secondary-action" id="dismiss-error" type="button">Return to arena</button><button class="primary-action" id="retry-run" type="button">Retry Life 1</button></div></div>
+  </div>
+
+  <dialog id="new-run-dialog" aria-labelledby="new-run-title">
+    <form method="dialog">
+      <span class="eyebrow">New controlled run</span>
+      <h2 id="new-run-title">Leave this experiment?</h2>
+      <p>The current Sibyl database remains on disk for audit. A new run creates a separate database and restores the interface to Life 1.</p>
+      <div class="dialog-actions"><button class="secondary-action" value="cancel">Keep evidence</button><button class="primary-action" id="confirm-new-run" value="confirm">Start clean run</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,1772 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090a08">
+  <title>Groundhog Vault — Time-loop risk arena</title>
+  <!--
+    DESIGN PROPOSAL #1
+    DNA: DNA-A-H-I-D-R
+    Layout: Asymmetric
+    Navigation: Hidden overlay
+    Hero: Immersive control room
+    Color: Duotone — coal + signal citron
+    Typography: Retro terminal
+    Inspiration: Bloomberg (dense data hierarchy) + brutalistwebsites.com
+      (functional rawness) + Groundhog Day (restrained time-loop motif)
+
+    UX ARCHITECTURE
+    Entry: Judge lands in a funded, ready arena with one primary action: Run Life 1.
+    Exit: Judge sees quantified Memory Lift and can inspect the policy provenance.
+
+    Screens:
+    1. Arena — paired experiment; primary action progresses the current life.
+    2. Memory Evidence — incident → lesson → policy → influenced decision.
+    3. Production Mapping — arena artifacts translated into DAO treasury controls.
+
+    Happy path:
+    Arena ready → Run Life 1 → Observe shared loss → Inspect formed memory →
+    Reset sessions → Run Life 2 → Observe divergence → Read Memory Lift →
+    View production mapping.
+
+    States:
+    - Empty/ready: funded arms, experiment premise, one Run Life action.
+    - Loading: bounded phase rail with explicit current operation.
+    - Error: named subsystem, retained evidence, Retry Life recovery.
+    - Success: decisions, capital, cited policy, and memory lift.
+
+    Kill-switch test:
+    - One action advances each phase; no instructions required.
+    - Comparison remains visible without opening navigation.
+    - The Amnesiac arm proves the causal effect of Sibyl recall.
+    - Production mapping is one compact translation, not a second product.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+
+      --ink: #090a08;
+      --ink-raised: #11130f;
+      --ink-soft: #181b15;
+      --paper: #ecebdc;
+      --paper-dim: #aaa99d;
+      --paper-faint: #74766d;
+      --ink-copy: #40423c;
+      --ink-copy-muted: #55574f;
+      --paper-rule: #8e8d84;
+      --fault-ink: #8c2e17;
+      --signal: #d7ff3f;
+      --signal-ink: #0a0b08;
+      --fault: #ff7b4d;
+      --line: #35392c;
+      --line-strong: #6b7450;
+      --veil: rgba(9, 10, 8, 0.94);
+      --scrim: rgba(9, 10, 8, 0.84);
+
+      --font-body: "IBM Plex Mono", monospace;
+      --font-display: "VT323", monospace;
+      --text-xs: 0.6875rem;
+      --text-sm: 0.8125rem;
+      --text-md: 1rem;
+      --text-display: clamp(3.75rem, 10vw, 8.75rem);
+
+      --weight-regular: 400;
+      --weight-medium: 500;
+      --weight-bold: 600;
+
+      --leading-tight: 0.86;
+      --leading-heading: 1.1;
+      --leading-body: 1.5;
+
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --space-20: 5rem;
+      --space-24: 6rem;
+
+      --border-thin: 0.0625rem;
+      --border-thick: 0.125rem;
+      --radius-none: 0;
+      --radius-round: 999rem;
+      --target: 2.75rem;
+      --control-lg: 3.5rem;
+      --rule-size: 3rem;
+      --orbit-size: min(68vw, 52rem);
+      --bar-height: 0.5rem;
+      --marker-size: 0.625rem;
+
+      --content-max: 100rem;
+      --reading-max: 44rem;
+      --nav-width: min(30rem, 100vw);
+
+      --z-base: 1;
+      --z-header: 20;
+      --z-nav: 40;
+      --z-badge: 50;
+      --z-modal: 60;
+
+      --duration-fast: 120ms;
+      --duration-standard: 220ms;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+      --capital-groundhog-ready: 100%;
+      --capital-amnesiac-ready: 100%;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { background: var(--ink); }
+
+    body {
+      margin: 0;
+      min-width: 20rem;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-regular);
+      line-height: var(--leading-body);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button, a { font: inherit; }
+
+    button {
+      color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 var(--space-1) var(--ink), 0 0 0 var(--space-2) var(--signal);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.44;
+    }
+
+    .numeric { font-variant-numeric: tabular-nums; }
+
+    .screen-reader-only {
+      position: absolute;
+      width: var(--border-thin);
+      height: var(--border-thin);
+      padding: 0;
+      margin: calc(var(--border-thin) * -1);
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .masthead {
+      position: absolute;
+      inset: 0 0 auto 0;
+      z-index: var(--z-header);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: start;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      pointer-events: none;
+    }
+
+    .menu-trigger,
+    .dna-badge { pointer-events: auto; }
+
+    .menu-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--target);
+      min-height: var(--target);
+      padding: 0;
+      background: var(--ink);
+      border: var(--border-thick) solid var(--paper);
+      border-radius: var(--radius-none);
+      cursor: pointer;
+    }
+
+    .menu-trigger svg,
+    .icon-button svg,
+    .status-symbol svg {
+      width: var(--space-5);
+      height: var(--space-5);
+      fill: none;
+      stroke: currentColor;
+      stroke-width: var(--border-thick);
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .dna-badge {
+      justify-self: end;
+      margin-right: calc(var(--space-24) + var(--space-8));
+      padding: var(--space-2) var(--space-3);
+      color: var(--signal);
+      background: var(--ink);
+      border: var(--border-thin) solid var(--line-strong);
+      font-size: var(--text-xs);
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .world-status {
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-4);
+      z-index: var(--z-header);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-height: var(--target);
+      color: var(--paper-dim);
+      font-size: var(--text-xs);
+      letter-spacing: 0.08em;
+      writing-mode: vertical-rl;
+    }
+
+    .world-status::before {
+      content: "";
+      width: var(--marker-size);
+      height: var(--marker-size);
+      background: var(--signal);
+      border-radius: var(--radius-round);
+    }
+
+    .immersive-hero {
+      position: relative;
+      min-height: 100svh;
+      overflow: hidden;
+      border-bottom: var(--border-thick) solid var(--paper);
+      isolation: isolate;
+    }
+
+    .loop-orbit {
+      position: absolute;
+      width: var(--orbit-size);
+      aspect-ratio: 1;
+      top: 50%;
+      left: 52%;
+      border: var(--border-thick) solid var(--line-strong);
+      border-radius: var(--radius-round);
+      transform: translate(-50%, -50%);
+      z-index: calc(var(--z-base) * -1);
+      pointer-events: none;
+    }
+
+    .loop-orbit::before,
+    .loop-orbit::after {
+      content: "";
+      position: absolute;
+      border-radius: var(--radius-round);
+    }
+
+    .loop-orbit::before {
+      inset: var(--space-8);
+      border: var(--border-thin) dashed var(--line);
+    }
+
+    .loop-orbit::after {
+      top: 48%;
+      right: calc(var(--space-1) * -1);
+      width: var(--space-4);
+      height: var(--space-4);
+      background: var(--signal);
+      transform: rotate(45deg);
+      border-radius: var(--radius-none);
+    }
+
+    .hero-grid {
+      width: min(100%, var(--content-max));
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: var(--space-24) var(--space-4) var(--space-4);
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+      grid-template-rows: auto 1fr auto;
+      column-gap: var(--space-8);
+      row-gap: var(--space-4);
+    }
+
+    .hero-copy {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      align-self: center;
+      padding-left: clamp(var(--space-2), 5vw, var(--space-20));
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin: 0 0 var(--space-3);
+      color: var(--signal);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-bold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: var(--rule-size);
+      height: var(--border-thick);
+      background: var(--signal);
+    }
+
+    .hero-title {
+      max-width: 7ch;
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: var(--text-display);
+      font-weight: var(--weight-regular);
+      line-height: var(--leading-tight);
+      letter-spacing: -0.035em;
+      text-transform: uppercase;
+    }
+
+    .hero-title .offset-line {
+      display: block;
+      margin-left: clamp(var(--space-8), 8vw, var(--space-24));
+      color: var(--signal);
+    }
+
+    .hero-thesis {
+      max-width: var(--reading-max);
+      margin: var(--space-6) 0 0 clamp(var(--space-8), 8vw, var(--space-24));
+      color: var(--paper-dim);
+      font-size: var(--text-md);
+      line-height: var(--leading-body);
+    }
+
+    .hero-thesis strong { color: var(--paper); }
+
+    .run-console {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+      border: var(--border-thick) solid var(--paper);
+      background: var(--ink);
+    }
+
+    .console-header,
+    .console-footer,
+    .panel-heading,
+    .evidence-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+
+    .console-header {
+      padding: var(--space-3) var(--space-4);
+      color: var(--ink);
+      background: var(--paper);
+      font-weight: var(--weight-bold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .phase-index {
+      color: var(--paper-faint);
+      font-size: var(--text-xs);
+    }
+
+    .console-header .phase-index { color: var(--ink); }
+
+    .console-body { padding: var(--space-5); }
+
+    .phase-readout {
+      min-height: 5rem;
+      margin-bottom: var(--space-5);
+      padding-left: var(--space-4);
+      border-left: var(--space-1) solid var(--signal);
+    }
+
+    .phase-readout h2 {
+      margin: 0 0 var(--space-1);
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: var(--weight-regular);
+      line-height: var(--leading-heading);
+      text-transform: uppercase;
+    }
+
+    .phase-readout p {
+      margin: 0;
+      color: var(--paper-dim);
+    }
+
+    .progress-rail {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-1);
+      margin-bottom: var(--space-5);
+    }
+
+    .progress-step {
+      height: var(--bar-height);
+      background: var(--line);
+    }
+
+    .progress-step.is-complete,
+    .progress-step.is-active { background: var(--signal); }
+
+    .primary-action,
+    .secondary-action,
+    .nav-action,
+    .text-action {
+      min-height: var(--target);
+      border-radius: var(--radius-none);
+      cursor: pointer;
+    }
+
+    .primary-action {
+      width: 100%;
+      min-height: var(--control-lg);
+      padding: var(--space-3) var(--space-4);
+      color: var(--signal-ink);
+      background: var(--signal);
+      border: var(--border-thick) solid var(--signal);
+      font-weight: var(--weight-bold);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: transform var(--duration-fast) var(--ease-out);
+    }
+
+    .primary-action:active { transform: translateY(var(--border-thick)); }
+
+    .secondary-action,
+    .nav-action {
+      padding: var(--space-3) var(--space-4);
+      color: var(--paper);
+      background: transparent;
+      border: var(--border-thin) solid var(--line-strong);
+      text-align: left;
+    }
+
+    .text-action {
+      padding: var(--space-2) var(--space-3);
+      color: var(--signal);
+      background: transparent;
+      border: var(--border-thin) solid var(--signal);
+    }
+
+    .console-footer {
+      padding: var(--space-3) var(--space-4);
+      border-top: var(--border-thin) solid var(--line);
+      color: var(--paper-faint);
+      font-size: var(--text-xs);
+    }
+
+    .seed-tag { color: var(--signal); }
+
+    .experiment-rule {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      color: var(--paper-dim);
+      border-top: var(--border-thin) solid var(--line);
+      font-size: var(--text-xs);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .experiment-rule::before {
+      content: "Controlled experiment";
+      color: var(--signal);
+    }
+
+    .experiment-rule::after {
+      content: "Only memory differs";
+      color: var(--paper);
+    }
+
+    .arena {
+      width: min(100%, var(--content-max));
+      margin: 0 auto;
+      padding: var(--space-12) var(--space-4) var(--space-20);
+    }
+
+    .arena-kicker {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-4);
+      align-items: end;
+      margin-bottom: var(--space-4);
+    }
+
+    .arena-kicker h2,
+    .memory-section h2,
+    .production-section h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: var(--weight-regular);
+      line-height: var(--leading-heading);
+      text-transform: uppercase;
+    }
+
+    .arena-kicker p {
+      max-width: var(--reading-max);
+      margin: 0;
+      color: var(--paper-dim);
+      text-align: right;
+    }
+
+    .vault-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 0;
+      border: var(--border-thick) solid var(--paper);
+    }
+
+    .vault-panel {
+      min-width: 0;
+      padding: var(--space-5);
+      background: var(--ink-raised);
+    }
+
+    .vault-panel + .vault-panel {
+      border-left: var(--border-thick) solid var(--paper);
+      transform: translateY(var(--space-8));
+      background: var(--ink);
+    }
+
+    .panel-heading {
+      padding-bottom: var(--space-4);
+      border-bottom: var(--border-thin) solid var(--line);
+    }
+
+    .arm-name {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin: 0;
+      font-size: var(--text-md);
+      line-height: var(--leading-heading);
+      text-transform: uppercase;
+    }
+
+    .arm-marker {
+      width: var(--space-3);
+      height: var(--space-3);
+      border: var(--border-thin) solid currentColor;
+    }
+
+    .groundhog .arm-marker { background: var(--signal); color: var(--signal); }
+    .amnesiac .arm-marker { background: transparent; color: var(--paper-faint); }
+
+    .arm-mode {
+      color: var(--paper-faint);
+      font-size: var(--text-xs);
+    }
+
+    .capital-block { padding: var(--space-8) 0 var(--space-6); }
+
+    .capital-label,
+    .datum-label,
+    .timeline-label,
+    .memory-meta,
+    .mapping-label {
+      display: block;
+      color: var(--paper-faint);
+      font-size: var(--text-xs);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .capital-value {
+      display: block;
+      margin-top: var(--space-1);
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 6vw, 5rem);
+      line-height: var(--leading-heading);
+    }
+
+    .groundhog .capital-value { color: var(--signal); }
+
+    .capital-track {
+      width: 100%;
+      height: var(--bar-height);
+      margin-top: var(--space-4);
+      overflow: hidden;
+      background: var(--line);
+    }
+
+    .capital-fill {
+      height: 100%;
+      background: var(--paper);
+      transform-origin: left center;
+      transition: transform var(--duration-standard) var(--ease-out);
+    }
+
+    .groundhog .capital-fill { background: var(--signal); }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: var(--border-thin) solid var(--line);
+    }
+
+    .datum-value {
+      display: block;
+      margin-top: var(--space-1);
+      color: var(--paper);
+      font-weight: var(--weight-bold);
+    }
+
+    .memory-reference {
+      min-height: var(--target);
+      margin-top: var(--space-5);
+      padding: var(--space-3);
+      color: var(--paper-dim);
+      border: var(--border-thin) dashed var(--line-strong);
+    }
+
+    .groundhog .memory-reference.has-memory {
+      color: var(--signal);
+      border-style: solid;
+      border-color: var(--signal);
+    }
+
+    .amnesiac .memory-reference { color: var(--paper-faint); }
+
+    .event-tape {
+      margin-top: var(--space-20);
+      border-top: var(--border-thick) solid var(--paper);
+    }
+
+    .event-row {
+      display: grid;
+      grid-template-columns: 6rem 9rem minmax(0, 1fr) auto;
+      gap: var(--space-4);
+      align-items: center;
+      min-height: var(--target);
+      padding: var(--space-3) 0;
+      border-bottom: var(--border-thin) solid var(--line);
+    }
+
+    .event-time,
+    .event-channel { color: var(--paper-faint); }
+
+    .event-state {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--paper-dim);
+      text-transform: uppercase;
+    }
+
+    .event-state::before {
+      content: "";
+      width: var(--space-2);
+      height: var(--space-2);
+      border: var(--border-thin) solid currentColor;
+      border-radius: var(--radius-round);
+    }
+
+    .event-row.is-current .event-state { color: var(--signal); }
+    .event-row.is-current .event-state::before { background: var(--signal); }
+    .event-row.is-fault .event-state { color: var(--fault); }
+    .event-row.is-fault .event-state::before { background: var(--fault); }
+
+    .memory-section,
+    .production-section {
+      border-top: var(--border-thick) solid var(--paper);
+    }
+
+    .memory-shell,
+    .production-shell {
+      width: min(100%, var(--content-max));
+      margin: 0 auto;
+      padding: var(--space-16) var(--space-4);
+    }
+
+    .memory-layout {
+      display: grid;
+      grid-template-columns: minmax(12rem, 0.36fr) minmax(0, 0.64fr);
+      gap: var(--space-12);
+    }
+
+    .memory-intro {
+      position: sticky;
+      top: var(--space-4);
+      align-self: start;
+    }
+
+    .memory-intro p,
+    .production-intro p {
+      max-width: var(--reading-max);
+      color: var(--paper-dim);
+    }
+
+    .memory-lift {
+      margin-top: var(--space-12);
+      padding-top: var(--space-3);
+      border-top: var(--border-thick) solid var(--signal);
+    }
+
+    .lift-value {
+      display: block;
+      color: var(--signal);
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 6vw, 5rem);
+      line-height: var(--leading-heading);
+    }
+
+    .evidence-chain {
+      border: var(--border-thick) solid var(--paper);
+      background: var(--ink-raised);
+    }
+
+    .evidence-heading {
+      padding: var(--space-3) var(--space-4);
+      color: var(--ink);
+      background: var(--paper);
+      text-transform: uppercase;
+    }
+
+    .evidence-item {
+      display: grid;
+      grid-template-columns: 7rem minmax(0, 1fr);
+      gap: var(--space-4);
+      padding: var(--space-5);
+      border-bottom: var(--border-thin) solid var(--line);
+    }
+
+    .evidence-item:last-child { border-bottom: 0; }
+
+    .evidence-index { color: var(--signal); }
+
+    .evidence-copy h3 {
+      margin: 0 0 var(--space-2);
+      font-size: var(--text-md);
+      line-height: var(--leading-heading);
+      text-transform: uppercase;
+    }
+
+    .evidence-copy p { margin: 0; color: var(--paper-dim); }
+
+    .evidence-id {
+      display: inline-block;
+      margin-top: var(--space-3);
+      color: var(--paper-faint);
+      font-size: var(--text-xs);
+    }
+
+    .evidence-chain.is-empty .evidence-copy p,
+    .evidence-chain.is-empty .evidence-id { color: var(--paper-faint); }
+
+    .production-section { background: var(--paper); color: var(--ink); }
+
+    .production-intro {
+      display: grid;
+      grid-template-columns: minmax(14rem, 0.6fr) minmax(18rem, 0.4fr);
+      gap: var(--space-12);
+      align-items: end;
+      margin-bottom: var(--space-10);
+    }
+
+    .production-intro p { color: var(--ink-copy); }
+
+    .mapping-flow {
+      display: grid;
+      grid-template-columns: 1.2fr var(--target) 1.2fr var(--target) 1.2fr var(--target) 1.2fr;
+      align-items: stretch;
+      border-top: var(--border-thick) solid var(--ink);
+      border-bottom: var(--border-thick) solid var(--ink);
+    }
+
+    .mapping-node {
+      min-height: 9rem;
+      padding: var(--space-4) 0;
+    }
+
+    .mapping-node strong {
+      display: block;
+      margin-top: var(--space-4);
+      font-size: var(--text-md);
+      line-height: var(--leading-heading);
+      text-transform: uppercase;
+    }
+
+    .mapping-node p { margin: var(--space-2) 0 0; color: var(--ink-copy); }
+
+    .mapping-connector {
+      align-self: center;
+      height: var(--border-thick);
+      margin: 0 var(--space-3);
+      background: var(--ink);
+      position: relative;
+    }
+
+    .mapping-connector::after {
+      content: "";
+      position: absolute;
+      top: calc(var(--space-1) * -1);
+      right: 0;
+      width: var(--space-2);
+      height: var(--space-2);
+      border-top: var(--border-thick) solid var(--ink);
+      border-right: var(--border-thick) solid var(--ink);
+      transform: rotate(45deg);
+    }
+
+    .production-note {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--space-4);
+      margin-top: var(--space-8);
+      padding: var(--space-4);
+      color: var(--paper);
+      background: var(--ink);
+    }
+
+    .production-note strong { color: var(--signal); text-transform: uppercase; }
+
+    .site-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      color: var(--paper-faint);
+      background: var(--ink);
+      border-top: var(--border-thin) solid var(--line);
+      font-size: var(--text-xs);
+    }
+
+    .nav-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-nav);
+      display: grid;
+      grid-template-columns: var(--nav-width) 1fr;
+      background: var(--scrim);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-standard) var(--ease-out);
+    }
+
+    .nav-scrim.is-open { opacity: 1; pointer-events: auto; }
+
+    .nav-drawer {
+      min-height: 100%;
+      padding: var(--space-4);
+      color: var(--ink);
+      background: var(--paper);
+      border-right: var(--border-thick) solid var(--signal);
+      transform: translateX(calc(var(--nav-width) * -1));
+      transition: transform var(--duration-standard) var(--ease-out);
+    }
+
+    .nav-scrim.is-open .nav-drawer { transform: translateX(0); }
+
+    .nav-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding-bottom: var(--space-4);
+      border-bottom: var(--border-thick) solid var(--ink);
+    }
+
+    .nav-head strong {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: var(--weight-regular);
+      text-transform: uppercase;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--target);
+      min-height: var(--target);
+      padding: 0;
+      color: var(--ink);
+      background: transparent;
+      border: var(--border-thick) solid var(--ink);
+      border-radius: var(--radius-none);
+      cursor: pointer;
+    }
+
+    .nav-links {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-8);
+    }
+
+    .nav-links a,
+    .nav-action {
+      min-height: var(--target);
+      padding: var(--space-3) 0;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-bottom: var(--border-thin) solid var(--paper-rule);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .nav-danger { color: var(--fault-ink); }
+
+    .nav-foot {
+      margin-top: var(--space-16);
+      color: var(--ink-copy-muted);
+      font-size: var(--text-xs);
+    }
+
+    .state-banner {
+      position: fixed;
+      left: 50%;
+      bottom: var(--space-4);
+      z-index: var(--z-modal);
+      width: min(calc(100% - var(--space-8)), 46rem);
+      padding: var(--space-4);
+      color: var(--paper);
+      background: var(--ink-raised);
+      border: var(--border-thick) solid var(--fault);
+      transform: translate(-50%, calc(100% + var(--space-8)));
+      opacity: 0;
+      pointer-events: none;
+      transition: transform var(--duration-standard) var(--ease-out), opacity var(--duration-standard) var(--ease-out);
+    }
+
+    .state-banner.is-visible {
+      transform: translate(-50%, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .error-layout {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-3);
+      align-items: center;
+    }
+
+    .status-symbol {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--target);
+      height: var(--target);
+      color: var(--fault);
+      border: var(--border-thin) solid var(--fault);
+      border-radius: var(--radius-round);
+    }
+
+    .error-copy strong { display: block; color: var(--fault); text-transform: uppercase; }
+    .error-copy span { color: var(--paper-dim); }
+
+    .modal-layer {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-modal);
+      display: grid;
+      place-items: center;
+      padding: var(--space-4);
+      background: var(--veil);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-standard) var(--ease-out);
+    }
+
+    .modal-layer.is-open { opacity: 1; pointer-events: auto; }
+
+    .confirm-dialog {
+      width: min(100%, 34rem);
+      padding: var(--space-6);
+      color: var(--paper);
+      background: var(--ink);
+      border: var(--border-thick) solid var(--fault);
+      transform: translateY(var(--space-4));
+      transition: transform var(--duration-standard) var(--ease-out);
+    }
+
+    .modal-layer.is-open .confirm-dialog { transform: translateY(0); }
+
+    .confirm-dialog h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: var(--weight-regular);
+      text-transform: uppercase;
+    }
+
+    .confirm-dialog p { color: var(--paper-dim); }
+
+    .dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+    }
+
+    .loading-skeleton {
+      display: none;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+
+    .is-loading .loading-skeleton { display: grid; }
+
+    .skeleton-line {
+      height: var(--space-2);
+      background: var(--line);
+      transform-origin: left center;
+      animation: skeleton-shift var(--duration-standard) var(--ease-out) alternate infinite;
+    }
+
+    .skeleton-line:nth-child(2) { width: 72%; }
+
+    @keyframes skeleton-shift {
+      from { transform: scaleX(0.93); opacity: 0.55; }
+      to { transform: scaleX(1); opacity: 1; }
+    }
+
+    @media (hover: hover) {
+      .menu-trigger:hover,
+      .secondary-action:hover,
+      .text-action:hover,
+      .icon-button:hover { color: var(--ink); background: var(--paper); }
+
+      .primary-action:hover { transform: translateY(calc(var(--border-thick) * -1)); }
+      .nav-links a:hover,
+      .nav-action:hover { border-bottom-color: var(--ink); }
+    }
+
+    @media (max-width: 60rem) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        padding-top: var(--space-20);
+      }
+
+      .hero-copy { grid-column: 1; grid-row: 1; padding: var(--space-8) 0; }
+      .run-console { grid-column: 1; grid-row: 2; width: min(100%, 36rem); justify-self: end; }
+      .experiment-rule { grid-column: 1; grid-row: 3; }
+      .loop-orbit { left: 82%; top: 28%; }
+      .vault-stage { grid-template-columns: 1fr; }
+      .vault-panel + .vault-panel { border-left: 0; border-top: var(--border-thick) solid var(--paper); transform: none; }
+      .event-tape { margin-top: var(--space-8); }
+      .memory-layout { grid-template-columns: 1fr; }
+      .memory-intro { position: static; }
+      .production-intro { grid-template-columns: 1fr; gap: var(--space-4); }
+      .mapping-flow { grid-template-columns: 1fr; }
+      .mapping-connector { width: var(--border-thick); height: var(--target); margin: 0 0 0 var(--space-4); }
+      .mapping-connector::after { top: auto; right: calc(var(--space-1) * -1); bottom: 0; transform: rotate(135deg); }
+      .mapping-node { min-height: auto; }
+    }
+
+    @media (max-width: 40rem) {
+      .dna-badge { margin-right: calc(var(--space-10) + var(--space-4)); font-size: 0; }
+      .dna-badge::after { content: "A-H-I-D-R"; font-size: var(--text-xs); }
+      .world-status { display: none; }
+      .hero-title { font-size: clamp(3.25rem, 18vw, 6rem); }
+      .hero-title .offset-line,
+      .hero-thesis { margin-left: 0; }
+      .experiment-rule { grid-template-columns: 1fr; }
+      .experiment-rule::after { content: "Only variable: Sibyl recall"; }
+      .arena-kicker { grid-template-columns: 1fr; }
+      .arena-kicker p { text-align: left; }
+      .event-row { grid-template-columns: 4rem 1fr; gap: var(--space-2); }
+      .event-channel { display: none; }
+      .event-state { justify-self: end; }
+      .evidence-item { grid-template-columns: 1fr; gap: var(--space-2); }
+      .error-layout { grid-template-columns: auto 1fr; }
+      .error-layout .text-action { grid-column: 1 / -1; width: 100%; }
+      .site-footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms;
+        animation-iteration-count: 1;
+        transition-duration: 0.01ms;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead" aria-label="Site controls">
+    <button class="menu-trigger" id="menuTrigger" type="button" aria-label="Open experiment menu" aria-expanded="false" aria-controls="siteMenu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
+    </button>
+    <div class="dna-badge" aria-label="Design DNA A H I D R">DNA-A-H-I-D-R</div>
+  </header>
+
+  <div class="world-status" aria-hidden="true">BASE SEPOLIA / SEED 042</div>
+
+  <nav class="nav-scrim" id="siteMenu" aria-label="Experiment menu" aria-hidden="true" inert>
+    <div class="nav-drawer" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+      <div class="nav-head">
+        <strong id="menuTitle">Control index</strong>
+        <button class="icon-button" id="menuClose" type="button" aria-label="Close experiment menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+        </button>
+      </div>
+      <div class="nav-links">
+        <a href="#arena">01 / Arena</a>
+        <a href="#memory">02 / Memory evidence</a>
+        <a href="#production">03 / Production mapping</a>
+        <button class="nav-action" id="simulateError" type="button">Simulate recall error</button>
+        <button class="nav-action nav-danger" id="eraseMemory" type="button">Erase Sibyl memory</button>
+      </div>
+      <p class="nav-foot">One deterministic market. Two fresh runtimes. Only persisted memory differs.</p>
+    </div>
+    <div id="menuDismiss" aria-hidden="true"></div>
+  </nav>
+
+  <main>
+    <section class="immersive-hero" aria-labelledby="pageTitle">
+      <div class="loop-orbit" aria-hidden="true"></div>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">DeFi risk / controlled loop</p>
+          <h1 class="hero-title" id="pageTitle">Groundhog <span class="offset-line">Vault</span></h1>
+          <p class="hero-thesis"><strong>A treasury that remembers the cost of failure.</strong> Run two identical vaults through the same crisis. Kill both sessions. Then watch persisted risk memory change the next decision.</p>
+        </div>
+
+        <aside class="run-console" id="runConsole" aria-labelledby="consoleTitle" aria-live="polite">
+          <div class="console-header">
+            <span id="consoleTitle">Experiment controller</span>
+            <span class="phase-index numeric" id="phaseIndex">LIFE 01 / READY</span>
+          </div>
+          <div class="console-body">
+            <div class="phase-readout">
+              <h2 id="phaseTitle">Both vaults funded</h2>
+              <p id="phaseCopy">MoonPool offers 27% APY. The risk signature has never been seen.</p>
+              <div class="loading-skeleton" aria-hidden="true">
+                <span class="skeleton-line"></span>
+                <span class="skeleton-line"></span>
+              </div>
+            </div>
+            <div class="progress-rail" aria-label="Life progress">
+              <span class="progress-step" data-progress="0"></span>
+              <span class="progress-step" data-progress="1"></span>
+              <span class="progress-step" data-progress="2"></span>
+              <span class="progress-step" data-progress="3"></span>
+            </div>
+            <button class="primary-action" id="runAction" type="button">Run Life 1</button>
+          </div>
+          <div class="console-footer">
+            <span>Scenario: depeg / disguised repeat</span>
+            <span class="seed-tag numeric">SEED 042</span>
+          </div>
+        </aside>
+
+        <div class="experiment-rule"><span>Same model · prompt · capital · market state</span></div>
+      </div>
+    </section>
+
+    <section class="arena" id="arena" aria-labelledby="arenaTitle">
+      <div class="arena-kicker">
+        <h2 id="arenaTitle">Paired vault arena</h2>
+        <p id="arenaSummary">No run recorded. Both control arms begin with identical capital and constraints.</p>
+      </div>
+
+      <div class="vault-stage">
+        <article class="vault-panel groundhog" aria-labelledby="groundhogTitle">
+          <div class="panel-heading">
+            <h3 class="arm-name" id="groundhogTitle"><span class="arm-marker" aria-hidden="true"></span>Groundhog</h3>
+            <span class="arm-mode">Sibyl recall: ON</span>
+          </div>
+          <div class="capital-block numeric">
+            <span class="capital-label">Treasury capital</span>
+            <span class="capital-value" id="groundhogCapital">$100,000</span>
+            <div class="capital-track" aria-hidden="true"><div class="capital-fill" id="groundhogBar"></div></div>
+          </div>
+          <div class="decision-grid">
+            <div><span class="datum-label">Allocation</span><span class="datum-value numeric" id="groundhogAllocation">—</span></div>
+            <div><span class="datum-label">Decision</span><span class="datum-value" id="groundhogDecision">Awaiting run</span></div>
+          </div>
+          <div class="memory-reference" id="groundhogMemory">No prior policy available.</div>
+        </article>
+
+        <article class="vault-panel amnesiac" aria-labelledby="amnesiacTitle">
+          <div class="panel-heading">
+            <h3 class="arm-name" id="amnesiacTitle"><span class="arm-marker" aria-hidden="true"></span>Amnesiac</h3>
+            <span class="arm-mode">Sibyl recall: OFF</span>
+          </div>
+          <div class="capital-block numeric">
+            <span class="capital-label">Treasury capital</span>
+            <span class="capital-value" id="amnesiacCapital">$100,000</span>
+            <div class="capital-track" aria-hidden="true"><div class="capital-fill" id="amnesiacBar"></div></div>
+          </div>
+          <div class="decision-grid">
+            <div><span class="datum-label">Allocation</span><span class="datum-value numeric" id="amnesiacAllocation">—</span></div>
+            <div><span class="datum-label">Decision</span><span class="datum-value" id="amnesiacDecision">Awaiting run</span></div>
+          </div>
+          <div class="memory-reference">Control arm. Cross-session memory remains unavailable.</div>
+        </article>
+      </div>
+
+      <div class="event-tape" aria-label="Experiment event tape" id="eventTape">
+        <div class="event-row is-current">
+          <span class="event-time numeric">00:00.0</span>
+          <span class="event-channel">SYSTEM</span>
+          <span id="eventMessage">Run initialized. No evidence recorded.</span>
+          <span class="event-state" id="eventState">READY</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="memory-section" id="memory" aria-labelledby="memoryTitle">
+      <div class="memory-shell memory-layout">
+        <div class="memory-intro">
+          <p class="eyebrow">Sibyl / evidence chain</p>
+          <h2 id="memoryTitle">The memory that changed the trade</h2>
+          <p>Groundhog does not remember a pool name. It preserves a causal signature, promotes it into a risk policy, and cites that policy when the pattern returns.</p>
+          <div class="memory-lift">
+            <span class="memory-meta">Memory lift after Life 2</span>
+            <strong class="lift-value numeric" id="memoryLift">—</strong>
+            <span id="liftNote">Complete both lives to quantify capital preserved.</span>
+          </div>
+        </div>
+
+        <div class="evidence-chain is-empty" id="evidenceChain">
+          <div class="evidence-heading">
+            <strong>Provenance ledger</strong>
+            <span class="numeric" id="evidenceCount">0 / 4</span>
+          </div>
+          <article class="evidence-item">
+            <span class="evidence-index">01 / INCIDENT</span>
+            <div class="evidence-copy">
+              <h3 id="incidentTitle">Waiting for failure</h3>
+              <p id="incidentCopy">Run Life 1 to create an inspectable loss event.</p>
+              <span class="evidence-id numeric" id="incidentId">COLD / uncommitted</span>
+            </div>
+          </article>
+          <article class="evidence-item">
+            <span class="evidence-index">02 / LESSON</span>
+            <div class="evidence-copy">
+              <h3 id="lessonTitle">No causal signature</h3>
+              <p id="lessonCopy">Observed conditions will be normalized after settlement.</p>
+              <span class="evidence-id numeric" id="lessonId">DERIVED / pending</span>
+            </div>
+          </article>
+          <article class="evidence-item">
+            <span class="evidence-index">03 / POLICY</span>
+            <div class="evidence-copy">
+              <h3 id="policyTitle">Exposure policy absent</h3>
+              <p id="policyCopy">Groundhog currently evaluates the opportunity without historical controls.</p>
+              <span class="evidence-id numeric" id="policyId">WARM / uncommitted</span>
+            </div>
+          </article>
+          <article class="evidence-item">
+            <span class="evidence-index">04 / DECISION</span>
+            <div class="evidence-copy">
+              <h3 id="influenceTitle">No decision influenced</h3>
+              <p id="influenceCopy">A fresh session must retrieve and cite the policy.</p>
+              <span class="evidence-id numeric" id="influenceId">SESSION / none</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="production-section" id="production" aria-labelledby="productionTitle">
+      <div class="production-shell">
+        <div class="production-intro">
+          <div>
+            <p class="eyebrow">Arena → operating system</p>
+            <h2 id="productionTitle">Institutional memory for onchain treasuries</h2>
+          </div>
+          <p>The simulation is a safe proof of production behavior: incidents become evidence-backed recommendations, while contracts and multisigs retain execution authority.</p>
+        </div>
+
+        <div class="mapping-flow" aria-label="Production workflow mapping">
+          <article class="mapping-node">
+            <span class="mapping-label">Observe</span>
+            <strong>Onchain event</strong>
+            <p>Alert, proposal, depeg, or counterparty outcome.</p>
+          </article>
+          <span class="mapping-connector" aria-hidden="true"></span>
+          <article class="mapping-node">
+            <span class="mapping-label">Recall</span>
+            <strong>Sibyl risk history</strong>
+            <p>Similar incidents, provenance, confidence, and expiry.</p>
+          </article>
+          <span class="mapping-connector" aria-hidden="true"></span>
+          <article class="mapping-node">
+            <span class="mapping-label">Constrain</span>
+            <strong>Typed policy</strong>
+            <p>Exposure cap, rejection, or emergency-withdrawal proposal.</p>
+          </article>
+          <span class="mapping-connector" aria-hidden="true"></span>
+          <article class="mapping-node">
+            <span class="mapping-label">Authorize</span>
+            <strong>Multisig / vault</strong>
+            <p>Human approval or contract-bounded execution on Base.</p>
+          </article>
+        </div>
+
+        <div class="production-note">
+          <strong>Real-world claim</strong>
+          <span>Groundhog does not predict the market. It prevents a treasury from paying twice for the same structural lesson.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>GROUNDHOG VAULT / PROPOSAL 01</span>
+    <span>Inspired by Bloomberg data density + brutalist functional rawness + restrained time-loop cinema</span>
+  </footer>
+
+  <div class="state-banner" id="errorBanner" role="alert" aria-live="assertive">
+    <div class="error-layout">
+      <span class="status-symbol" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 7v6M12 17h.01M12 3l9 17H3L12 3z"/></svg>
+      </span>
+      <div class="error-copy">
+        <strong>Sibyl recall timed out</strong>
+        <span>Previous evidence remains intact. Retry this life without discarding the run.</span>
+      </div>
+      <button class="text-action" id="retryAction" type="button">Retry life</button>
+    </div>
+  </div>
+
+  <div class="modal-layer" id="eraseModal" aria-hidden="true" inert>
+    <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="eraseTitle" aria-describedby="eraseDescription">
+      <h2 id="eraseTitle">Erase the only difference?</h2>
+      <p id="eraseDescription">This clears Groundhog's incident and risk policy, returning both arms to the same amnesiac state. The prototype can be restarted immediately.</p>
+      <div class="dialog-actions">
+        <button class="secondary-action" id="cancelErase" type="button">Keep memory</button>
+        <button class="primary-action" id="confirmErase" type="button">Erase and restart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const state = {
+        stage: "ready-life-1",
+        lastStableStage: "ready-life-1",
+        timers: [],
+        menuOpen: false,
+        modalOpen: false
+      };
+
+      const values = {
+        initial: 100000,
+        afterLifeOne: 82000,
+        groundhogFinal: 79540,
+        amnesiacFinal: 67240,
+        memoryLift: 12300
+      };
+
+      const ui = {
+        menuTrigger: document.getElementById("menuTrigger"),
+        menu: document.getElementById("siteMenu"),
+        menuClose: document.getElementById("menuClose"),
+        menuDismiss: document.getElementById("menuDismiss"),
+        simulateError: document.getElementById("simulateError"),
+        eraseMemory: document.getElementById("eraseMemory"),
+        runConsole: document.getElementById("runConsole"),
+        runAction: document.getElementById("runAction"),
+        phaseIndex: document.getElementById("phaseIndex"),
+        phaseTitle: document.getElementById("phaseTitle"),
+        phaseCopy: document.getElementById("phaseCopy"),
+        arenaSummary: document.getElementById("arenaSummary"),
+        groundhogCapital: document.getElementById("groundhogCapital"),
+        amnesiacCapital: document.getElementById("amnesiacCapital"),
+        groundhogBar: document.getElementById("groundhogBar"),
+        amnesiacBar: document.getElementById("amnesiacBar"),
+        groundhogAllocation: document.getElementById("groundhogAllocation"),
+        amnesiacAllocation: document.getElementById("amnesiacAllocation"),
+        groundhogDecision: document.getElementById("groundhogDecision"),
+        amnesiacDecision: document.getElementById("amnesiacDecision"),
+        groundhogMemory: document.getElementById("groundhogMemory"),
+        eventMessage: document.getElementById("eventMessage"),
+        eventState: document.getElementById("eventState"),
+        eventRow: document.querySelector(".event-row"),
+        progress: Array.from(document.querySelectorAll(".progress-step")),
+        evidenceChain: document.getElementById("evidenceChain"),
+        evidenceCount: document.getElementById("evidenceCount"),
+        incidentTitle: document.getElementById("incidentTitle"),
+        incidentCopy: document.getElementById("incidentCopy"),
+        incidentId: document.getElementById("incidentId"),
+        lessonTitle: document.getElementById("lessonTitle"),
+        lessonCopy: document.getElementById("lessonCopy"),
+        lessonId: document.getElementById("lessonId"),
+        policyTitle: document.getElementById("policyTitle"),
+        policyCopy: document.getElementById("policyCopy"),
+        policyId: document.getElementById("policyId"),
+        influenceTitle: document.getElementById("influenceTitle"),
+        influenceCopy: document.getElementById("influenceCopy"),
+        influenceId: document.getElementById("influenceId"),
+        memoryLift: document.getElementById("memoryLift"),
+        liftNote: document.getElementById("liftNote"),
+        errorBanner: document.getElementById("errorBanner"),
+        retryAction: document.getElementById("retryAction"),
+        eraseModal: document.getElementById("eraseModal"),
+        cancelErase: document.getElementById("cancelErase"),
+        confirmErase: document.getElementById("confirmErase")
+      };
+
+      const money = (value) => new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0
+      }).format(value);
+
+      function clearTimers() {
+        state.timers.forEach(window.clearTimeout);
+        state.timers = [];
+      }
+
+      function queue(callback, delay) {
+        state.timers.push(window.setTimeout(callback, delay));
+      }
+
+      function setProgress(activeCount) {
+        ui.progress.forEach((step, index) => {
+          step.classList.toggle("is-complete", index < activeCount);
+          step.classList.toggle("is-active", index === activeCount);
+        });
+      }
+
+      function setBars(groundhog, amnesiac) {
+        ui.groundhogBar.style.transform = `scaleX(${groundhog / values.initial})`;
+        ui.amnesiacBar.style.transform = `scaleX(${amnesiac / values.initial})`;
+      }
+
+      function setCapital(groundhog, amnesiac) {
+        ui.groundhogCapital.textContent = money(groundhog);
+        ui.amnesiacCapital.textContent = money(amnesiac);
+        setBars(groundhog, amnesiac);
+      }
+
+      function setEvent(message, status, kind = "current") {
+        ui.eventMessage.textContent = message;
+        ui.eventState.textContent = status;
+        ui.eventRow.classList.toggle("is-current", kind === "current");
+        ui.eventRow.classList.toggle("is-fault", kind === "fault");
+      }
+
+      function setLoading(isLoading) {
+        ui.runConsole.classList.toggle("is-loading", isLoading);
+        ui.runAction.disabled = isLoading;
+        ui.runAction.setAttribute("aria-busy", String(isLoading));
+      }
+
+      function renderReadyLifeOne() {
+        state.stage = "ready-life-1";
+        state.lastStableStage = state.stage;
+        setLoading(false);
+        setProgress(-1);
+        setCapital(values.initial, values.initial);
+        ui.phaseIndex.textContent = "LIFE 01 / READY";
+        ui.phaseTitle.textContent = "Both vaults funded";
+        ui.phaseCopy.textContent = "MoonPool offers 27% APY. The risk signature has never been seen.";
+        ui.runAction.textContent = "Run Life 1";
+        ui.arenaSummary.textContent = "No run recorded. Both control arms begin with identical capital and constraints.";
+        ui.groundhogAllocation.textContent = "—";
+        ui.amnesiacAllocation.textContent = "—";
+        ui.groundhogDecision.textContent = "Awaiting run";
+        ui.amnesiacDecision.textContent = "Awaiting run";
+        ui.groundhogMemory.textContent = "No prior policy available.";
+        ui.groundhogMemory.classList.remove("has-memory");
+        setEvent("Run initialized. No evidence recorded.", "READY");
+        renderEmptyEvidence();
+      }
+
+      function renderEmptyEvidence() {
+        ui.evidenceChain.classList.add("is-empty");
+        ui.evidenceCount.textContent = "0 / 4";
+        ui.incidentTitle.textContent = "Waiting for failure";
+        ui.incidentCopy.textContent = "Run Life 1 to create an inspectable loss event.";
+        ui.incidentId.textContent = "COLD / uncommitted";
+        ui.lessonTitle.textContent = "No causal signature";
+        ui.lessonCopy.textContent = "Observed conditions will be normalized after settlement.";
+        ui.lessonId.textContent = "DERIVED / pending";
+        ui.policyTitle.textContent = "Exposure policy absent";
+        ui.policyCopy.textContent = "Groundhog currently evaluates the opportunity without historical controls.";
+        ui.policyId.textContent = "WARM / uncommitted";
+        ui.influenceTitle.textContent = "No decision influenced";
+        ui.influenceCopy.textContent = "A fresh session must retrieve and cite the policy.";
+        ui.influenceId.textContent = "SESSION / none";
+        ui.memoryLift.textContent = "—";
+        ui.liftNote.textContent = "Complete both lives to quantify capital preserved.";
+      }
+
+      function renderLifeOneEvidence() {
+        ui.evidenceChain.classList.remove("is-empty");
+        ui.evidenceCount.textContent = "3 / 4";
+        ui.incidentTitle.textContent = "MoonPool depeg / 18% treasury loss";
+        ui.incidentCopy.textContent = "Incentive-funded yield combined with concentrated exits and shallow stablecoin liquidity.";
+        ui.incidentId.textContent = "COLD / incident:life-01:moonpool";
+        ui.lessonTitle.textContent = "Yield obscured exit fragility";
+        ui.lessonCopy.textContent = "Two or more matching signals predict unacceptable depeg exposure, independent of pool identity.";
+        ui.lessonId.textContent = "DERIVED / confidence 0.82";
+        ui.policyTitle.textContent = "Cap repeated signature at 5%";
+        ui.policyCopy.textContent = "When incentive yield, concentrated exits, and shallow peg liquidity recur, limit allocation to five percent.";
+        ui.policyId.textContent = "WARM / policy:risk-signature:042";
+        ui.influenceTitle.textContent = "Awaiting fresh session";
+        ui.influenceCopy.textContent = "The policy exists, but has not yet changed a decision.";
+        ui.influenceId.textContent = "SESSION / reset required";
+        ui.memoryLift.textContent = "PENDING";
+        ui.liftNote.textContent = "Policy persisted. Destroy both runtimes to test recall.";
+      }
+
+      function renderLifeTwoEvidence() {
+        renderLifeOneEvidence();
+        ui.evidenceCount.textContent = "4 / 4";
+        ui.influenceTitle.textContent = "Exposure cut from 30% to 5%";
+        ui.influenceCopy.textContent = "Fresh Groundhog session cited policy:risk-signature:042 when SunPool reproduced the causal pattern.";
+        ui.influenceId.textContent = "SESSION / life-02-groundhog-new";
+        ui.memoryLift.textContent = `+${money(values.memoryLift)}`;
+        ui.liftNote.textContent = "Capital preserved because persisted memory changed the allocation.";
+      }
+
+      function runLifeOne() {
+        state.stage = "running-life-1";
+        clearTimers();
+        setLoading(true);
+        ui.phaseIndex.textContent = "LIFE 01 / DECIDING";
+        ui.phaseTitle.textContent = "Fresh agents evaluating";
+        ui.phaseCopy.textContent = "Both arms see 27% APY, concentrated liquidity, and the same action schema.";
+        setProgress(0);
+        setEvent("Typed decisions requested from both fresh sessions.", "DECIDING");
+
+        queue(() => {
+          ui.groundhogAllocation.textContent = "30%";
+          ui.amnesiacAllocation.textContent = "30%";
+          ui.groundhogDecision.textContent = "Allocate";
+          ui.amnesiacDecision.textContent = "Allocate";
+          ui.phaseIndex.textContent = "LIFE 01 / EXECUTING";
+          ui.phaseTitle.textContent = "Matched allocations committed";
+          ui.phaseCopy.textContent = "Both vaults deploy $30,000 under identical deterministic constraints.";
+          setProgress(1);
+          setEvent("Equal 30% allocations committed to MoonPool.", "EXECUTING");
+        }, 650);
+
+        queue(() => {
+          ui.phaseIndex.textContent = "LIFE 01 / CRISIS";
+          ui.phaseTitle.textContent = "Stablecoin depegs";
+          ui.phaseCopy.textContent = "Exit liquidity collapses. Both vaults lose $18,000.";
+          setCapital(values.afterLifeOne, values.afterLifeOne);
+          setProgress(2);
+          setEvent("MoonUSD depeg settled: both arms lose 18% of treasury.", "CRISIS", "fault");
+        }, 1300);
+
+        queue(() => {
+          state.stage = "life-1-complete";
+          state.lastStableStage = state.stage;
+          setLoading(false);
+          ui.phaseIndex.textContent = "LIFE 01 / REMEMBERED";
+          ui.phaseTitle.textContent = "Failure becomes policy";
+          ui.phaseCopy.textContent = "Groundhog journals the incident and promotes a 5% exposure cap into Sibyl.";
+          ui.runAction.textContent = "Destroy & reset sessions";
+          ui.arenaSummary.textContent = "Life 1 complete. Outcomes match; Groundhog alone preserves the causal lesson.";
+          ui.groundhogMemory.textContent = "Persisted: policy:risk-signature:042 / exposure cap 5% / confidence 0.82";
+          ui.groundhogMemory.classList.add("has-memory");
+          setProgress(4);
+          setEvent("Sibyl write confirmed. WARM risk policy promoted from COLD incident.", "REMEMBERED");
+          renderLifeOneEvidence();
+        }, 2000);
+      }
+
+      function resetSessions() {
+        state.stage = "resetting";
+        clearTimers();
+        setLoading(true);
+        ui.phaseIndex.textContent = "BETWEEN LIVES / RESET";
+        ui.phaseTitle.textContent = "Destroying both runtimes";
+        ui.phaseCopy.textContent = "Session identities and prompt context are discarded. Sibyl remains.";
+        setProgress(0);
+        setEvent("Groundhog and Amnesiac runtime identities destroyed.", "RESETTING");
+
+        queue(() => {
+          state.stage = "ready-life-2";
+          state.lastStableStage = state.stage;
+          setLoading(false);
+          ui.phaseIndex.textContent = "LIFE 02 / READY";
+          ui.phaseTitle.textContent = "New names. Same risk shape.";
+          ui.phaseCopy.textContent = "SunPool offers 24% APY with the causal signature from Life 1.";
+          ui.runAction.textContent = "Run Life 2";
+          ui.groundhogAllocation.textContent = "—";
+          ui.amnesiacAllocation.textContent = "—";
+          ui.groundhogDecision.textContent = "Fresh session";
+          ui.amnesiacDecision.textContent = "Fresh session";
+          ui.arenaSummary.textContent = "Both runtime sessions are new. Groundhog can retrieve one persisted risk policy.";
+          setProgress(-1);
+          setEvent("Fresh sessions created. Groundhog recall available; control remains blank.", "READY");
+        }, 900);
+      }
+
+      function runLifeTwo() {
+        state.stage = "running-life-2";
+        clearTimers();
+        setLoading(true);
+        ui.phaseIndex.textContent = "LIFE 02 / RECALLING";
+        ui.phaseTitle.textContent = "Searching institutional memory";
+        ui.phaseCopy.textContent = "SunPool is new. Its normalized signals resemble the MoonPool incident.";
+        setProgress(0);
+        setEvent("Groundhog queries Sibyl for matching causal risk signatures.", "RECALLING");
+
+        queue(() => {
+          ui.groundhogAllocation.textContent = "5%";
+          ui.amnesiacAllocation.textContent = "30%";
+          ui.groundhogDecision.textContent = "Cap exposure";
+          ui.amnesiacDecision.textContent = "Allocate";
+          ui.phaseIndex.textContent = "LIFE 02 / DIVERGED";
+          ui.phaseTitle.textContent = "Memory changes the trade";
+          ui.phaseCopy.textContent = "Groundhog cites policy 042 and caps exposure. Amnesiac repeats 30%.";
+          setProgress(1);
+          setEvent("Decision divergence recorded: 5% versus 30% allocation.", "DIVERGED");
+        }, 700);
+
+        queue(() => {
+          ui.phaseIndex.textContent = "LIFE 02 / CRISIS";
+          ui.phaseTitle.textContent = "The pattern repeats";
+          ui.phaseCopy.textContent = "SunUSD depegs. The policy limits Groundhog's damage.";
+          setCapital(values.groundhogFinal, values.amnesiacFinal);
+          setProgress(2);
+          setEvent("SunUSD depeg settled. Different allocations produce different loss.", "CRISIS", "fault");
+        }, 1400);
+
+        queue(() => {
+          state.stage = "complete";
+          state.lastStableStage = state.stage;
+          setLoading(false);
+          ui.phaseIndex.textContent = "EXPERIMENT / COMPLETE";
+          ui.phaseTitle.textContent = `Memory preserved ${money(values.memoryLift)}`;
+          ui.phaseCopy.textContent = "Same market and model. Persisted memory is the only experimental variable.";
+          ui.runAction.textContent = "Replay experiment";
+          ui.arenaSummary.textContent = "Complete. Groundhog avoids repeating the full exposure and finishes $12,300 ahead.";
+          setProgress(4);
+          setEvent("Memory Lift verified against the amnesiac control arm.", "SUCCESS");
+          renderLifeTwoEvidence();
+        }, 2100);
+      }
+
+      function replay() {
+        clearTimers();
+        renderReadyLifeOne();
+      }
+
+      function advance() {
+        if (state.stage === "ready-life-1") runLifeOne();
+        else if (state.stage === "life-1-complete") resetSessions();
+        else if (state.stage === "ready-life-2") runLifeTwo();
+        else if (state.stage === "complete") replay();
+      }
+
+      function openMenu() {
+        state.menuOpen = true;
+        ui.menu.classList.add("is-open");
+        ui.menu.setAttribute("aria-hidden", "false");
+        ui.menu.inert = false;
+        ui.menuTrigger.setAttribute("aria-expanded", "true");
+        ui.menuClose.focus();
+      }
+
+      function closeMenu({ restoreFocus = true } = {}) {
+        state.menuOpen = false;
+        ui.menu.classList.remove("is-open");
+        ui.menu.setAttribute("aria-hidden", "true");
+        ui.menu.inert = true;
+        ui.menuTrigger.setAttribute("aria-expanded", "false");
+        if (restoreFocus) ui.menuTrigger.focus();
+      }
+
+      function showError() {
+        state.lastStableStage = state.stage.includes("running") ? "ready-life-1" : state.stage;
+        clearTimers();
+        setLoading(false);
+        closeMenu({ restoreFocus: false });
+        ui.errorBanner.classList.add("is-visible");
+        ui.retryAction.focus();
+      }
+
+      function hideError() {
+        ui.errorBanner.classList.remove("is-visible");
+      }
+
+      function retry() {
+        hideError();
+        if (state.lastStableStage === "ready-life-2") runLifeTwo();
+        else if (state.lastStableStage === "life-1-complete") resetSessions();
+        else if (state.lastStableStage === "complete") replay();
+        else runLifeOne();
+      }
+
+      function openEraseModal() {
+        closeMenu({ restoreFocus: false });
+        state.modalOpen = true;
+        ui.eraseModal.classList.add("is-open");
+        ui.eraseModal.setAttribute("aria-hidden", "false");
+        ui.eraseModal.inert = false;
+        ui.cancelErase.focus();
+      }
+
+      function closeEraseModal() {
+        state.modalOpen = false;
+        ui.eraseModal.classList.remove("is-open");
+        ui.eraseModal.setAttribute("aria-hidden", "true");
+        ui.eraseModal.inert = true;
+        ui.menuTrigger.focus();
+      }
+
+      function confirmErase() {
+        closeEraseModal();
+        replay();
+        setEvent("Sibyl records erased. Both arms returned to amnesiac baseline.", "ERASED", "fault");
+      }
+
+      ui.runAction.addEventListener("click", advance);
+      ui.menuTrigger.addEventListener("click", openMenu);
+      ui.menuClose.addEventListener("click", () => closeMenu());
+      ui.menuDismiss.addEventListener("click", () => closeMenu());
+      ui.simulateError.addEventListener("click", showError);
+      ui.eraseMemory.addEventListener("click", openEraseModal);
+      ui.retryAction.addEventListener("click", retry);
+      ui.cancelErase.addEventListener("click", closeEraseModal);
+      ui.confirmErase.addEventListener("click", confirmErase);
+
+      ui.menu.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => closeMenu({ restoreFocus: false }));
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        if (state.modalOpen) closeEraseModal();
+        else if (state.menuOpen) closeMenu();
+        else if (ui.errorBanner.classList.contains("is-visible")) hideError();
+      });
+
+      renderReadyLifeOne();
+    })();
+  </script>
+</body>
+</html>

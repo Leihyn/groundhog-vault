@@ -1,0 +1,58 @@
+:root {
+  color-scheme: dark;
+  --ink-0: #090a08;
+  --ink-1: #0f100d;
+  --ink-2: #161813;
+  --paper-0: #f0efe4;
+  --paper-1: #c1c0b4;
+  --paper-2: #85877d;
+  --line-0: #30332b;
+  --line-1: #525644;
+  --signal: #d7ff3f;
+  --signal-ink: #0a0b08;
+  --mustard: #d9b342;
+  --fault: #df9b7d;
+  --focus: rgba(215, 255, 63, 0.38);
+  --scrim: rgba(9, 10, 8, 0.94);
+
+  --font-display: "Newsreader", Georgia, serif;
+  --font-terminal: "VT323", "Courier New", monospace;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-md: 1rem;
+  --text-lg: clamp(1.8rem, 3.4vw, 3.8rem);
+  --text-hero: clamp(4.5rem, 12vw, 10.5rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  --border: 1px;
+  --border-heavy: 2px;
+  --radius-none: 0;
+  --radius-round: 999rem;
+  --control-height: 2.75rem;
+  --nav-width: 15rem;
+  --content-max: 108rem;
+
+  --z-base: 1;
+  --z-nav: 20;
+  --z-overlay: 60;
+  --z-dialog: 80;
+
+  --duration-fast: 140ms;
+  --duration-normal: 220ms;
+  --duration-scene: 280ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}

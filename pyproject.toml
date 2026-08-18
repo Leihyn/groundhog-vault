@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "groundhog-vault"
+version = "0.1.0"
+description = "A DeFi risk-memory arena where a vault survives by remembering prior failures."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "sibyl-memory-client>=0.4.15,<0.5",
+]
+
+[project.scripts]
+groundhog = "groundhog_vault.cli:main"
+groundhog-serve = "groundhog_vault.server:main"
+
+[tool.setuptools.packages.find]
+include = ["groundhog_vault*"]
