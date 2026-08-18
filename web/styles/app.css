@@ -117,7 +117,7 @@ button:disabled { cursor: not-allowed; opacity: 0.46; }
 .primary-action:active,
 .secondary-action:active { transform: translateY(var(--border-heavy)); }
 
-/* Cinematic entry — Proposal 1 */
+/* Entry */
 .intro {
   position: relative;
   min-height: 100vh;
@@ -220,7 +220,7 @@ button:disabled { cursor: not-allowed; opacity: 0.46; }
 body[data-scene="app"] .intro { display: none; }
 body[data-scene="intro"] .app-shell { display: none; }
 
-/* Institutional risk desk — Proposal 2 */
+/* Experiment workspace */
 .app-shell {
   display: grid;
   grid-template-columns: var(--nav-width) minmax(0, 1fr);

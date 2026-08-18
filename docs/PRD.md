@@ -1,102 +1,63 @@
-# Groundhog Vault — Product Requirements
+# Groundhog Vault: Product Requirements
 
-## Product thesis
+## Problem
 
-DeFi systems can monitor what is happening now, but their operators and agents can still repeat structurally similar failures across sessions. Groundhog Vault turns incidents into persistent, inspectable risk policies and proves their effect in a controlled time-loop arena.
+Treasury agents are often stateless between sessions. A new session can repeat an earlier loss even when the organization already paid to learn the lesson.
 
-**Hackathon experience:** a vault repeatedly faces DeFi crises and becomes harder to kill.
+Groundhog Vault turns a loss into a persisted risk policy and measures whether that policy changes a later decision.
 
-**Production direction:** institutional risk memory for DAO treasuries and constrained autonomous vault guardians.
+## Demonstration
 
-## Primary demonstration
+Two agents begin with $100,000 and receive identical decision logic and market inputs.
 
-Two identical vaults receive the same capital, market state, actions, and deterministic outcomes. Both runtimes are reconstructed between lives. The only experimental variable is whether Sibyl recall is enabled.
+1. Both allocate 30% to MoonPool.
+2. A deterministic depeg reduces both balances to $82,000.
+3. Groundhog stores the incident and a 5% exposure cap in Sibyl.
+4. Both agent runtimes are discarded.
+5. Fresh agents evaluate SunPool, which has a new name but the same risk signature.
+6. Groundhog retrieves the cap and allocates 5%; Amnesiac allocates 30%.
+7. Groundhog finishes with $12,300 more capital.
 
-1. In Life 1, both vaults allocate 30% to a high-yield pool and suffer a stablecoin depeg.
-2. Groundhog writes the incident to Sibyl's COLD journal and promotes a reusable risk policy to a WARM entity.
-3. Both agent instances are discarded.
-4. In Life 2, a differently named pool presents the same causal risk signature.
-5. A fresh Groundhog instance recalls the policy and caps exposure at 5%.
-6. A fresh Amnesiac instance repeats the 30% allocation.
-7. The runner reports capital preserved and whether memory changed the decision.
+Memory is the only experimental variable.
 
-## Users
+## Requirements
 
-### Hackathon user
+- Construct a new agent and memory client for each round.
+- Persist Groundhog's records in an on-disk Sibyl database.
+- Give the control arm no cross-session history.
+- Match policies by risk signature rather than protocol name.
+- Link each policy to its source incident.
+- Expose each round through a separate API request.
+- Show capital, allocation, runtime identity, rationale, and recalled policy.
+- Keep the result deterministic and covered by tests.
 
-A judge or spectator who needs to understand the value of persistent memory in under sixty seconds.
+## Memory records
 
-### Production user
+### Incident event
 
-A DAO treasury committee, protocol risk team, or onchain asset manager that needs prior incidents to influence new proposals while retaining deterministic execution limits and human approval.
+An append-only record containing the protocol, loss, observed signals, and promoted policy identifier.
 
-## Functional requirements
+### Risk-policy entity
 
-### P0 — Load-bearing memory proof
+The current exposure rule for a signal signature, including its cap, confidence, lesson, and source incident.
 
-- Deterministic, seedable scenarios.
-- Groundhog and Amnesiac control arms.
-- New agent object for every life.
-- Persistent Sibyl database shared only by Groundhog sessions.
-- Structured incident, lesson, policy, and decision records.
-- Provenance from policy to source incident.
-- Machine-readable and human-readable reports.
-- Tests showing the same current input produces different decisions only when memory is available.
+## Production boundary
 
-### P1 — Judge-facing product
+The current build is a simulation. A deployed treasury guardian would produce constrained transaction proposals rather than execute unrestricted model output.
 
-- Visual crash-and-rewind sequence.
-- Side-by-side vault capital and decisions.
-- Inspectable memories with source and confidence.
-- Base Sepolia transaction evidence.
-- A destructive "erase memory" control with confirmation.
+Required safeguards:
 
-### P2 — Partner integrations
+- allowlisted assets and protocols;
+- exposure and slippage limits enforced by contracts;
+- evidence attached to every recommendation;
+- human or multisig approval for consequential actions;
+- expiry and review rules for learned policies.
 
-- A constrained Base vault executes approved scenario allocations and records epoch results.
-- A Virtuals ACP counterparty proposes economically meaningful terms that Groundhog may accept, reject, or renegotiate based on memory.
+## Not in the current build
 
-## Non-goals
-
-- Mainnet funds.
-- Price prediction or guaranteed returns.
-- Unrestricted model-generated transactions.
-- A general portfolio optimizer.
-- A token launch.
-- Exhaustive simulation of real protocols.
-
-## Memory model
-
-| Artifact | Sibyl tier | Purpose |
-|---|---|---|
-| Current life | HOT state | Active capital, scenario, and phase |
-| Risk policy | WARM entity | One current policy per causal risk signature |
-| Incident | COLD journal | Append-only account of what happened |
-| Scenario definition | REFERENCE | Static facts and deterministic rules |
-| Retired policy | ARCHIVE | Superseded rule retained for audit |
-
-The initial implementation uses WARM entities and COLD journal entries. HOT and REFERENCE wiring follows when the live orchestrator is added.
-
-## Safety model
-
-- The reasoning layer chooses only from a typed action schema.
-- Smart contracts enforce asset, protocol, exposure, and slippage limits.
-- Consequential production actions remain multisig proposals.
-- Every recommendation cites the memory records that affected it.
-- Memories carry confidence, evidence, creation time, and eventual expiry.
-
-## Success metrics
-
-- **Memory lift:** Groundhog final capital minus Amnesiac final capital.
-- **Repeat-loss rate:** percentage of previously observed risk signatures repeated.
-- **Lives survived:** epochs completed above the insolvency threshold.
-- **Decision influence:** count of decisions changed by a cited memory.
-- **False-positive avoidance:** safe opportunities rejected because of an over-broad lesson.
-
-## Definition of done for the first milestone
-
-- A single command runs both control arms through two fresh sessions.
-- Groundhog uses the official `sibyl-memory-client` package.
-- Groundhog allocates no more than 5% in the disguised-repeat scenario.
-- Amnesiac allocates 30% in the same scenario.
-- The result is deterministic and covered by tests.
+- Mainnet funds
+- Live protocol integrations
+- Price prediction
+- Base contracts
+- Virtuals coordination
+- Model-generated transactions

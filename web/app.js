@@ -155,7 +155,7 @@ function configureLoading(lifeNumber) {
   elements.loadingCode.textContent = `RUN L0${lifeNumber} / ${lifeNumber === 1 ? "SIBYL DATABASE INITIALIZING" : "FRESH CLIENT RECALL"}`;
   elements.loadingTitle.textContent = lifeNumber === 1 ? "Fresh agents are deciding." : "Memory is changing the decision.";
   elements.loadingDetail.textContent = lifeNumber === 1
-    ? "The current prompts are identical. Neither agent has encountered MoonPool before."
+    ? "The current inputs are identical. Neither agent has encountered MoonPool before."
     : "Both runtimes are new. Groundhog opens the persisted Sibyl database; Amnesiac receives no historical channel.";
 }
 
@@ -197,7 +197,7 @@ function destroySessions() {
     elements.phaseLabel.textContent = "Fresh sessions ready";
     elements.navStatus.textContent = "Life 2 / fresh runtimes";
     elements.controllerTitle.textContent = "SunPool offers 22% APY under a new name.";
-    elements.controllerDetail.textContent = "Both agents receive the same current market. Only Groundhog can recall MoonPool.";
+    elements.controllerDetail.textContent = "Both agents receive the same market input. Only Groundhog can recall the Life 1 risk policy.";
     elements.advance.textContent = "Run Life 2";
     document.querySelector("#groundhog-session").textContent = "GH-fresh-new";
     document.querySelector("#amnesiac-session").textContent = "AM-fresh-new";
