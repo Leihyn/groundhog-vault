@@ -2,9 +2,7 @@
 
 ## Public repo URL
 
-`[Add the public GitHub repository URL after publishing]`
-
-Suggested format: `https://github.com/<username>/groundhog-vault`
+https://github.com/Leihyn/groundhog-vault
 
 ## Demo video URL
 
@@ -49,7 +47,7 @@ The current implementation directly uses Sibyl entity storage and retrieval plus
 
 Leave **Mark ready for judging** unchecked until all of these are complete:
 
-- The repository is public and its URL is saved.
+- [x] The repository is public and its URL is saved.
 - The demo video is publicly accessible and its URL is saved.
 - At least two build-in-public post URLs are saved.
 - The submitted commit runs from the README instructions.
