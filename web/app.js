@@ -385,7 +385,7 @@ elements.proposalForm.addEventListener("submit", async (event) => {
     setFormStatus(elements.proposalStatus, `Fresh session ${evaluation.session_id} completed.`, "success");
     document.querySelector("#evidence-decision").textContent = `${evaluation.protocol_name} exposure: ${allocation}%`;
     document.querySelector("#evidence-decision-copy").textContent = evaluation.decision.rationale;
-    elements.recordBase.disabled = !state.baseConfig?.receipt_contract;
+    refreshBaseAction();
     announce(`Fresh treasury review complete. Recommended allocation is ${allocation} percent.`);
   } catch (error) {
     setFormStatus(elements.proposalStatus, error instanceof Error ? error.message : "Proposal could not be evaluated.", "error");
@@ -400,13 +400,31 @@ async function loadBaseConfig() {
     const response = await fetch("/api/config");
     const payload = await response.json();
     state.baseConfig = payload.base;
-    elements.baseStatus.textContent = payload.base.receipt_contract
-      ? `Contract ${payload.base.receipt_contract} is ready on ${payload.base.network}.`
-      : "Receipt contract is not deployed yet. Proposal evaluation still works offchain.";
-    elements.recordBase.disabled = !payload.base.receipt_contract || !state.treasuryEvaluation;
+    const localContract = window.localStorage.getItem("groundhog-base-contract") || "";
+    if (!state.baseConfig.receipt_contract && /^0x[a-fA-F0-9]{40}$/.test(localContract)) {
+      state.baseConfig.receipt_contract = localContract;
+    }
+    elements.baseStatus.textContent = state.baseConfig.receipt_contract
+      ? `Contract ${state.baseConfig.receipt_contract} is ready on ${payload.base.network}.`
+      : "Deploy the receipt contract from your wallet, then anchor evaluated recommendations.";
+    refreshBaseAction();
   } catch {
     elements.baseStatus.textContent = "Base configuration could not be loaded.";
   }
+}
+
+function refreshBaseAction() {
+  if (!state.baseConfig) {
+    elements.recordBase.disabled = true;
+    return;
+  }
+  if (!state.baseConfig.receipt_contract) {
+    elements.recordBase.textContent = "Deploy receipt contract";
+    elements.recordBase.disabled = false;
+    return;
+  }
+  elements.recordBase.textContent = "Record on Base";
+  elements.recordBase.disabled = !state.treasuryEvaluation;
 }
 
 async function sha256Word(value) {
@@ -438,39 +456,71 @@ async function waitForTransaction(provider, transactionHash) {
   return null;
 }
 
+async function connectBaseWallet(provider) {
+  const accounts = await provider.request({ method: "eth_requestAccounts" });
+  const chainId = await provider.request({ method: "eth_chainId" });
+  if (chainId !== state.baseConfig.chain_id_hex) {
+    try {
+      await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: state.baseConfig.chain_id_hex }] });
+    } catch (switchError) {
+      if (switchError.code !== 4902) throw switchError;
+      await provider.request({
+        method: "wallet_addEthereumChain",
+        params: [{
+          chainId: state.baseConfig.chain_id_hex,
+          chainName: state.baseConfig.network,
+          nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+          rpcUrls: [state.baseConfig.rpc_url],
+          blockExplorerUrls: [state.baseConfig.explorer_url],
+        }],
+      });
+    }
+  }
+  return accounts[0];
+}
+
+async function deployReceiptContract(provider) {
+  const account = await connectBaseWallet(provider);
+  const bytecodeResponse = await fetch("/risk-receipt-bytecode.txt");
+  if (!bytecodeResponse.ok) throw new Error("Contract bytecode is unavailable.");
+  const bytecode = (await bytecodeResponse.text()).trim();
+  elements.baseStatus.textContent = "Confirm the Base Sepolia contract deployment in your wallet…";
+  const transactionHash = await provider.request({
+    method: "eth_sendTransaction",
+    params: [{ from: account, data: bytecode }],
+  });
+  elements.baseTransaction.href = `${state.baseConfig.explorer_url}/tx/${transactionHash}`;
+  elements.baseTransaction.hidden = false;
+  const receipt = await waitForTransaction(provider, transactionHash);
+  if (receipt?.status !== "0x1" || !receipt.contractAddress) {
+    throw new Error(receipt ? "Contract deployment reverted." : "Deployment submitted but confirmation is still pending.");
+  }
+  state.baseConfig.receipt_contract = receipt.contractAddress;
+  window.localStorage.setItem("groundhog-base-contract", receipt.contractAddress);
+  elements.baseStatus.textContent = `Receipt contract deployed at ${receipt.contractAddress}.`;
+  refreshBaseAction();
+}
+
 elements.recordBase.addEventListener("click", async () => {
-  if (!state.treasuryEvaluation || !state.baseConfig?.receipt_contract) return;
+  if (!state.baseConfig) return;
   const provider = window.ethereum;
   if (!provider) {
     elements.baseStatus.textContent = "A browser wallet is required to record the receipt.";
     return;
   }
   elements.recordBase.disabled = true;
-  elements.baseStatus.textContent = "Waiting for Base Sepolia wallet confirmation…";
   try {
-    const accounts = await provider.request({ method: "eth_requestAccounts" });
-    const chainId = await provider.request({ method: "eth_chainId" });
-    if (chainId !== state.baseConfig.chain_id_hex) {
-      try {
-        await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: state.baseConfig.chain_id_hex }] });
-      } catch (switchError) {
-        if (switchError.code !== 4902) throw switchError;
-        await provider.request({
-          method: "wallet_addEthereumChain",
-          params: [{
-            chainId: state.baseConfig.chain_id_hex,
-            chainName: state.baseConfig.network,
-            nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-            rpcUrls: [state.baseConfig.rpc_url],
-            blockExplorerUrls: [state.baseConfig.explorer_url],
-          }],
-        });
-      }
+    if (!state.baseConfig.receipt_contract) {
+      await deployReceiptContract(provider);
+      return;
     }
+    if (!state.treasuryEvaluation) return;
+    elements.baseStatus.textContent = "Waiting for Base Sepolia wallet confirmation…";
+    const account = await connectBaseWallet(provider);
     const transactionHash = await provider.request({
       method: "eth_sendTransaction",
       params: [{
-        from: accounts[0],
+        from: account,
         to: state.baseConfig.receipt_contract,
         data: await encodeDecisionReceipt(state.treasuryEvaluation),
       }],
@@ -483,7 +533,8 @@ elements.recordBase.addEventListener("click", async () => {
       : receipt ? "The Base transaction reverted." : "Transaction submitted; confirmation is still pending.";
   } catch (error) {
     elements.baseStatus.textContent = error instanceof Error ? error.message : "Base transaction was not submitted.";
-    elements.recordBase.disabled = false;
+  } finally {
+    refreshBaseAction();
   }
 });
 

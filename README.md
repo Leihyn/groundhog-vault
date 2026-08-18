@@ -70,6 +70,8 @@ forge create src/RiskReceiptRegistry.sol:RiskReceiptRegistry \
 
 Set `BASE_RECEIPT_CONTRACT` to the deployed address before starting the server. The Treasury view will then let users write decision receipts to Base Sepolia.
 
+For a first deployment, leave the variable unset and choose **Deploy receipt contract** in the Treasury view. The connected wallet deploys the same compiled contract and the browser retains its address. Set `BASE_RECEIPT_CONTRACT` on the hosted service afterward so every visitor uses that registry.
+
 ## Scope
 
 The allocation engine is deterministic and never moves treasury funds. Base integration is limited to user-signed decision receipts on Sepolia. The intended deployment path is a constrained treasury recommender whose proposals require contract limits and human approval.
