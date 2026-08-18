@@ -48,8 +48,9 @@
       </a>
       <nav class="nav-links">
         <button class="nav-link is-active" type="button" data-screen-target="arena" aria-current="page"><span>01</span>Arena</button>
-        <button class="nav-link" type="button" data-screen-target="evidence"><span>02</span><span class="nav-label">Evidence <small id="evidence-nav-state">Pending</small></span></button>
-        <button class="nav-link" type="button" data-screen-target="production"><span>03</span>Field map</button>
+        <button class="nav-link" type="button" data-screen-target="treasury"><span>02</span>Treasury</button>
+        <button class="nav-link" type="button" data-screen-target="evidence"><span>03</span><span class="nav-label">Evidence <small id="evidence-nav-state">Pending</small></span></button>
+        <button class="nav-link" type="button" data-screen-target="production"><span>04</span>Deploy</button>
       </nav>
       <div class="nav-status">
         <p class="status-line"><span class="status-dot" aria-hidden="true"></span><span id="nav-status">Ready / no run</span></p>
@@ -116,8 +117,61 @@
         </section>
       </section>
 
+      <section class="screen treasury-screen" id="treasury" aria-labelledby="treasury-title" hidden>
+        <header class="screen-heading"><p class="eyebrow">02 / Treasury review</p><h2 id="treasury-title">Test your own repeat risk.</h2><p>Record a real incident, then evaluate a differently named proposal in a fresh agent session.</p></header>
+        <div class="workflow-grid">
+          <form class="workflow-form" id="incident-form">
+            <header><span>Step 1</span><h3>Record an incident</h3></header>
+            <label>Protocol name<input name="protocol_name" value="Northstar USD" maxlength="80" required></label>
+            <div class="field-pair">
+              <label>Loss (USD)<input name="loss" type="number" min="1" step="1" value="18000" required></label>
+              <label>Advertised APY (%)<input name="advertised_apy" type="number" min="0" max="500" step="0.1" value="27" required></label>
+            </div>
+            <fieldset>
+              <legend>Risk signals (0–100)</legend>
+              <div class="signal-grid">
+                <label>Incentive-funded yield<input name="incentive_funded_yield" type="number" min="0" max="100" value="85" required></label>
+                <label>Liquidity concentration<input name="liquidity_concentration" type="number" min="0" max="100" value="80" required></label>
+                <label>Exit liquidity<input name="exit_liquidity" type="number" min="0" max="100" value="20" required></label>
+                <label>Peg instability<input name="peg_instability" type="number" min="0" max="100" value="75" required></label>
+              </div>
+            </fieldset>
+            <button class="primary-action" type="submit">Store incident in Sibyl</button>
+            <p class="form-status" id="incident-status" role="status">No user incident stored in this browser session.</p>
+          </form>
+
+          <form class="workflow-form" id="proposal-form">
+            <header><span>Step 2</span><h3>Evaluate a proposal</h3></header>
+            <label>Protocol name<input name="protocol_name" value="Harbor Yield" maxlength="80" required></label>
+            <label>Advertised APY (%)<input name="advertised_apy" type="number" min="0" max="500" step="0.1" value="22" required></label>
+            <fieldset>
+              <legend>Risk signals (0–100)</legend>
+              <div class="signal-grid">
+                <label>Incentive-funded yield<input name="incentive_funded_yield" type="number" min="0" max="100" value="80" required></label>
+                <label>Liquidity concentration<input name="liquidity_concentration" type="number" min="0" max="100" value="76" required></label>
+                <label>Exit liquidity<input name="exit_liquidity" type="number" min="0" max="100" value="25" required></label>
+                <label>Peg instability<input name="peg_instability" type="number" min="0" max="100" value="60" required></label>
+              </div>
+            </fieldset>
+            <button class="primary-action" type="submit">Run fresh-session review</button>
+            <p class="form-status" id="proposal-status" role="status">Awaiting proposal.</p>
+          </form>
+
+          <section class="decision-receipt" aria-labelledby="decision-receipt-title">
+            <div><span>Recommendation</span><strong id="treasury-allocation">—</strong></div>
+            <div><h3 id="decision-receipt-title">No proposal evaluated</h3><p id="treasury-rationale">Submit an incident and proposal to test whether the recalled policy changes exposure.</p><p class="memory-citation" id="treasury-policy">No policy cited</p></div>
+          </section>
+
+          <section class="base-receipt" aria-labelledby="base-receipt-title">
+            <div><span>Base Sepolia</span><h3 id="base-receipt-title">Onchain decision receipt</h3><p id="base-status">Checking contract configuration…</p></div>
+            <button class="secondary-action" id="record-base" type="button" disabled>Record on Base</button>
+            <a id="base-transaction" href="#" target="_blank" rel="noreferrer" hidden>View transaction</a>
+          </section>
+        </div>
+      </section>
+
       <section class="screen evidence-screen" id="evidence" aria-labelledby="evidence-title" hidden>
-        <header class="screen-heading"><p class="eyebrow">02 / Memory evidence</p><h2 id="evidence-title">Show the chain, not the claim.</h2><p>Every policy must point back to the incident that produced it and forward to the decision it changed.</p></header>
+        <header class="screen-heading"><p class="eyebrow">03 / Memory evidence</p><h2 id="evidence-title">Show the chain, not the claim.</h2><p>Every policy must point back to the incident that produced it and forward to the decision it changed.</p></header>
         <div class="evidence-flow">
           <article><span>Cold / incident</span><h3 id="evidence-incident">No incident recorded</h3><p id="evidence-incident-copy">Run Life 1 to create the append-only failure record.</p></article>
           <article><span>Warm / policy</span><h3 id="evidence-policy">No policy promoted</h3><p id="evidence-policy-copy">A causal signature becomes one current risk policy.</p></article>
@@ -127,7 +181,7 @@
       </section>
 
       <section class="screen production-screen" id="production" aria-labelledby="production-title" hidden>
-        <header class="screen-heading"><p class="eyebrow">03 / Deployment path</p><h2 id="production-title">From simulation to treasury guardian.</h2><p>A deployed version would apply the same memory path to constrained treasury proposals.</p></header>
+        <header class="screen-heading"><p class="eyebrow">04 / Deployment path</p><h2 id="production-title">From simulation to treasury guardian.</h2><p>A deployed version would apply the same memory path to constrained treasury proposals.</p></header>
         <p class="scroll-hint">Swipe horizontally to compare all production columns.</p>
         <div class="mapping-table" role="table" aria-label="Simulation to production mapping">
           <div role="row" class="mapping-head"><span role="columnheader">Arena</span><span role="columnheader">Production</span><span role="columnheader">Safety boundary</span></div>

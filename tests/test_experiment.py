@@ -8,9 +8,62 @@ from groundhog_vault.agent import VaultAgent
 from groundhog_vault.experiment import create_experiment_session, result_as_dict, run_experiment
 from groundhog_vault.memory import NoMemory, SibylRiskMemory
 from groundhog_vault.scenarios import DISGUISED_DEPEG_SEQUENCE
+from groundhog_vault.storage import ExperimentStore
+from groundhog_vault.treasury import TreasuryWorkflow
 
 
 class GroundhogMemoryTests(unittest.TestCase):
+    def test_active_run_survives_store_reconstruction(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            first_process = ExperimentStore(directory)
+            session = first_process.create()
+            session.run_next_life()
+            first_process.save(session)
+
+            second_process = ExperimentStore(directory)
+            restored = second_process.load(session.run_id)
+            self.assertIsNotNone(restored)
+            self.assertEqual(restored.next_life_number, 2)
+            self.assertEqual(len(restored.groundhog_lives), 1)
+
+            restored.run_next_life()
+            second_process.save(restored)
+            final = ExperimentStore(directory).load(session.run_id)
+            self.assertTrue(final.complete)
+            self.assertEqual(final.snapshot()["memory_lift"], 12_300.0)
+
+    def test_user_incident_changes_a_fresh_treasury_evaluation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "treasury.db"
+            signals = {
+                "incentive_funded_yield": 0.85,
+                "liquidity_concentration": 0.80,
+                "exit_liquidity": 0.20,
+                "peg_instability": 0.75,
+            }
+            incident = TreasuryWorkflow(database).submit_incident(
+                {
+                    "protocol_name": "Northstar USD",
+                    "loss": 18_000,
+                    "advertised_apy": 0.27,
+                    "signals": signals,
+                }
+            )
+            evaluation = TreasuryWorkflow(database).evaluate_proposal(
+                {
+                    "protocol_name": "Harbor Yield",
+                    "advertised_apy": 0.22,
+                    "signals": signals,
+                }
+            )
+
+            self.assertNotEqual(incident["protocol_name"], evaluation["protocol_name"])
+            self.assertEqual(evaluation["decision"]["allocation_fraction"], 0.05)
+            self.assertEqual(
+                evaluation["recalled_policy"]["source_incident_id"],
+                incident["incident_id"],
+            )
+
     def test_incremental_api_model_runs_exactly_one_life_at_a_time(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             session = create_experiment_session(

@@ -89,6 +89,19 @@ class SibylRiskMemory:
             ),
             signals=signals,
         )
+        self._client.set_entity(
+            "risk_incident",
+            incident_id,
+            {
+                "incident_id": incident_id,
+                "opportunity_id": opportunity.opportunity_id,
+                "protocol": opportunity.protocol_name,
+                "loss": round(loss, 2),
+                "signals": list(signals),
+                "risk_signature": signature,
+                "promoted_policy": policy.policy_id,
+            },
+        )
         self._client.set_entity("risk_policy", signature, policy.as_body())
         self._client.write_event(
             acted=[
@@ -105,3 +118,6 @@ class SibylRiskMemory:
             ]
         )
         return policy
+
+    def record_evaluation(self, evaluation_id: str, body: dict[str, object]) -> None:
+        self._client.set_entity("proposal_evaluation", evaluation_id, body)

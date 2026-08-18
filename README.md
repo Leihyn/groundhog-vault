@@ -30,6 +30,8 @@ For terminal output instead:
 
 Each round constructs a new `VaultAgent` and a new Sibyl client. The SQLite database is the only state shared across Groundhog sessions. If that memory channel is replaced with `NoMemory`, Groundhog makes the same decision as the control and the capital advantage disappears.
 
+Run metadata is written atomically under `.data/runs/`. An interrupted experiment can therefore be loaded and completed after the server process restarts.
+
 Sibyl stores two records:
 
 - an incident event describing the loss and observed signals;
@@ -45,8 +47,31 @@ The second session retrieves the policy by signature, not protocol name.
 
 The tests cover incremental round execution, fresh-client persistence, decision causality, and the final capital difference.
 
+The **Treasury** view also accepts a user-supplied loss and evaluates a later proposal in a genuinely fresh session. This workflow uses the same persisted Sibyl policy path as the controlled experiment.
+
+## Base Sepolia receipts
+
+`contracts/src/RiskReceiptRegistry.sol` records a proposal evaluation ID, recommended allocation, memory-applied flag, and hashes linking the policy to its source incident. The user signs the receipt from the browser; Groundhog never holds the wallet key.
+
+Run the contract tests:
+
+```bash
+cd contracts
+forge test
+```
+
+Deploy with a funded Foundry keystore account:
+
+```bash
+forge create src/RiskReceiptRegistry.sol:RiskReceiptRegistry \
+  --rpc-url https://sepolia.base.org \
+  --account deployer
+```
+
+Set `BASE_RECEIPT_CONTRACT` to the deployed address before starting the server. The Treasury view will then let users write decision receipts to Base Sepolia.
+
 ## Scope
 
-This repository is a deterministic simulation. It does not move funds, call mainnet contracts, or use Base or Virtuals yet. The intended deployment path is a constrained treasury recommender whose proposals require contract limits and human approval.
+The allocation engine is deterministic and never moves treasury funds. Base integration is limited to user-signed decision receipts on Sepolia. The intended deployment path is a constrained treasury recommender whose proposals require contract limits and human approval.
 
 See [docs/PRD.md](docs/PRD.md) for the product boundary.

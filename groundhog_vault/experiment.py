@@ -6,7 +6,7 @@ from typing import Callable
 from uuid import uuid4
 
 from .agent import VaultAgent
-from .domain import ArmName, ArmResult, ExperimentResult, LifeResult
+from .domain import ArmName, ArmResult, Decision, ExperimentResult, LifeResult
 from .memory import NoMemory, RiskMemory, SibylRiskMemory
 from .scenarios import DISGUISED_DEPEG_SEQUENCE
 
@@ -107,6 +107,47 @@ class ExperimentSession:
             "amnesiac": asdict(ArmResult(arm="amnesiac", lives=tuple(self.amnesiac_lives))),
             "memory_lift": memory_lift,
         }
+
+    @classmethod
+    def from_snapshot(cls, payload: dict[str, object]) -> "ExperimentSession":
+        def restore_life(raw: dict[str, object]) -> LifeResult:
+            decision_raw = raw["decision"]
+            if not isinstance(decision_raw, dict):
+                raise TypeError("decision must be an object")
+            decision = Decision(
+                arm=str(decision_raw["arm"]),
+                session_id=str(decision_raw["session_id"]),
+                opportunity_id=str(decision_raw["opportunity_id"]),
+                allocation_fraction=float(decision_raw["allocation_fraction"]),
+                rationale=str(decision_raw["rationale"]),
+                recalled_policy_ids=tuple(
+                    str(value) for value in decision_raw["recalled_policy_ids"]
+                ),
+            )
+            return LifeResult(
+                life_number=int(raw["life_number"]),
+                arm=str(raw["arm"]),
+                session_id=str(raw["session_id"]),
+                protocol_name=str(raw["protocol_name"]),
+                starting_capital=float(raw["starting_capital"]),
+                ending_capital=float(raw["ending_capital"]),
+                loss=float(raw["loss"]),
+                decision=decision,
+                incident_id=str(raw["incident_id"]),
+            )
+
+        def restore_arm(name: ArmName) -> list[LifeResult]:
+            raw_arm = payload[name]
+            if not isinstance(raw_arm, dict) or not isinstance(raw_arm.get("lives"), list):
+                raise TypeError(f"{name} arm is invalid")
+            return [restore_life(raw) for raw in raw_arm["lives"]]
+
+        return cls(
+            run_id=str(payload["run_id"]),
+            database_path=Path(str(payload["database_path"])),
+            groundhog_lives=restore_arm("groundhog"),
+            amnesiac_lives=restore_arm("amnesiac"),
+        )
 
 
 def create_experiment_session(

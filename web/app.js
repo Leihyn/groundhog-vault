@@ -5,6 +5,9 @@ const state = {
   step: "ready-one",
   result: null,
   runId: null,
+  treasuryIncident: null,
+  treasuryEvaluation: null,
+  baseConfig: null,
   lastFocus: null,
   overlayFocus: null,
 };
@@ -34,6 +37,17 @@ const elements = {
   loadingTitle: document.querySelector("#loading-title"),
   loadingDetail: document.querySelector("#loading-detail"),
   evidenceNavState: document.querySelector("#evidence-nav-state"),
+  incidentForm: document.querySelector("#incident-form"),
+  proposalForm: document.querySelector("#proposal-form"),
+  incidentStatus: document.querySelector("#incident-status"),
+  proposalStatus: document.querySelector("#proposal-status"),
+  treasuryAllocation: document.querySelector("#treasury-allocation"),
+  treasuryReceiptTitle: document.querySelector("#decision-receipt-title"),
+  treasuryRationale: document.querySelector("#treasury-rationale"),
+  treasuryPolicy: document.querySelector("#treasury-policy"),
+  baseStatus: document.querySelector("#base-status"),
+  recordBase: document.querySelector("#record-base"),
+  baseTransaction: document.querySelector("#base-transaction"),
 };
 
 const money = new Intl.NumberFormat("en-US", {
@@ -144,8 +158,8 @@ function renderLife(index) {
   }
 }
 
-async function postJson(path) {
-  const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+async function postJson(path, bodyPayload = {}) {
+  const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyPayload) });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.detail || payload.error || "Experiment service returned an error.");
   return payload;
@@ -165,6 +179,7 @@ async function loadLifeOne() {
   try {
     const created = await postJson("/api/runs");
     state.runId = created.run_id;
+    window.localStorage.setItem("groundhog-active-run", state.runId);
     state.result = await postJson(`/api/runs/${state.runId}/lives`);
     renderLife(0);
     setPhase("success");
@@ -210,6 +225,7 @@ function resetInterface() {
   state.step = "ready-one";
   state.result = null;
   state.runId = null;
+  window.localStorage.removeItem("groundhog-active-run");
   body.dataset.step = state.step;
   setPhase("ready");
   showScreen("arena");
@@ -303,3 +319,194 @@ document.addEventListener("keydown", (event) => {
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   }
 });
+
+function workflowPayload(form, includeLoss) {
+  const values = new FormData(form);
+  const payload = {
+    protocol_name: values.get("protocol_name"),
+    advertised_apy: Number(values.get("advertised_apy")) / 100,
+    signals: {
+      incentive_funded_yield: Number(values.get("incentive_funded_yield")) / 100,
+      liquidity_concentration: Number(values.get("liquidity_concentration")) / 100,
+      exit_liquidity: Number(values.get("exit_liquidity")) / 100,
+      peg_instability: Number(values.get("peg_instability")) / 100,
+    },
+  };
+  if (includeLoss) payload.loss = Number(values.get("loss"));
+  return payload;
+}
+
+function setFormStatus(element, message, kind = "") {
+  element.textContent = message;
+  element.classList.toggle("is-success", kind === "success");
+  element.classList.toggle("is-error", kind === "error");
+}
+
+elements.incidentForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = elements.incidentForm.querySelector("button[type='submit']");
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  setFormStatus(elements.incidentStatus, "Writing incident and risk policy…");
+  try {
+    const incident = await postJson("/api/treasury/incidents", workflowPayload(elements.incidentForm, true));
+    state.treasuryIncident = incident;
+    setFormStatus(elements.incidentStatus, `Stored ${incident.incident_id}. Policy cap: ${Math.round(incident.policy.maximum_exposure * 100)}%.`, "success");
+    document.querySelector("#evidence-incident").textContent = `${incident.protocol_name} / −${money.format(incident.loss)}`;
+    document.querySelector("#evidence-incident-copy").textContent = `User-submitted incident with signature ${incident.risk_signature}.`;
+    document.querySelector("#evidence-policy").textContent = `Cap matching exposure at ${Math.round(incident.policy.maximum_exposure * 100)}%`;
+    document.querySelector("#evidence-policy-copy").textContent = `Sibyl entity linked to ${incident.incident_id}.`;
+    elements.evidenceNavState.textContent = "Available";
+    announce("Incident stored in Sibyl. A reusable exposure policy is available to fresh sessions.");
+  } catch (error) {
+    setFormStatus(elements.incidentStatus, error instanceof Error ? error.message : "Incident could not be stored.", "error");
+  } finally {
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+  }
+});
+
+elements.proposalForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = elements.proposalForm.querySelector("button[type='submit']");
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  setFormStatus(elements.proposalStatus, "Constructing a fresh agent session…");
+  try {
+    const evaluation = await postJson("/api/treasury/evaluations", workflowPayload(elements.proposalForm, false));
+    state.treasuryEvaluation = evaluation;
+    const allocation = Math.round(evaluation.decision.allocation_fraction * 100);
+    elements.treasuryAllocation.textContent = `${allocation}%`;
+    elements.treasuryReceiptTitle.textContent = `${evaluation.protocol_name}: cap exposure at ${allocation}%`;
+    elements.treasuryRationale.textContent = evaluation.decision.rationale;
+    elements.treasuryPolicy.textContent = evaluation.recalled_policy
+      ? `Cited ${evaluation.recalled_policy.policy_id} from ${evaluation.recalled_policy.source_incident_id}`
+      : "No matching policy found";
+    setFormStatus(elements.proposalStatus, `Fresh session ${evaluation.session_id} completed.`, "success");
+    document.querySelector("#evidence-decision").textContent = `${evaluation.protocol_name} exposure: ${allocation}%`;
+    document.querySelector("#evidence-decision-copy").textContent = evaluation.decision.rationale;
+    elements.recordBase.disabled = !state.baseConfig?.receipt_contract;
+    announce(`Fresh treasury review complete. Recommended allocation is ${allocation} percent.`);
+  } catch (error) {
+    setFormStatus(elements.proposalStatus, error instanceof Error ? error.message : "Proposal could not be evaluated.", "error");
+  } finally {
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+  }
+});
+
+async function loadBaseConfig() {
+  try {
+    const response = await fetch("/api/config");
+    const payload = await response.json();
+    state.baseConfig = payload.base;
+    elements.baseStatus.textContent = payload.base.receipt_contract
+      ? `Contract ${payload.base.receipt_contract} is ready on ${payload.base.network}.`
+      : "Receipt contract is not deployed yet. Proposal evaluation still works offchain.";
+    elements.recordBase.disabled = !payload.base.receipt_contract || !state.treasuryEvaluation;
+  } catch {
+    elements.baseStatus.textContent = "Base configuration could not be loaded.";
+  }
+}
+
+async function sha256Word(value) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await window.crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function uintWord(value) {
+  return Math.round(value).toString(16).padStart(64, "0");
+}
+
+async function encodeDecisionReceipt(evaluation) {
+  const selector = "49ff064d";
+  const evaluationWord = evaluation.evaluation_id.padStart(64, "0");
+  const allocationWord = uintWord(evaluation.decision.allocation_fraction * 10_000);
+  const memoryWord = uintWord(evaluation.recalled_policy ? 1 : 0);
+  const policyWord = await sha256Word(evaluation.recalled_policy?.policy_id || "none");
+  const incidentWord = await sha256Word(evaluation.recalled_policy?.source_incident_id || "none");
+  return `0x${selector}${evaluationWord}${allocationWord}${memoryWord}${policyWord}${incidentWord}`;
+}
+
+async function waitForTransaction(provider, transactionHash) {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const receipt = await provider.request({ method: "eth_getTransactionReceipt", params: [transactionHash] });
+    if (receipt) return receipt;
+    await new Promise((resolve) => window.setTimeout(resolve, 1000));
+  }
+  return null;
+}
+
+elements.recordBase.addEventListener("click", async () => {
+  if (!state.treasuryEvaluation || !state.baseConfig?.receipt_contract) return;
+  const provider = window.ethereum;
+  if (!provider) {
+    elements.baseStatus.textContent = "A browser wallet is required to record the receipt.";
+    return;
+  }
+  elements.recordBase.disabled = true;
+  elements.baseStatus.textContent = "Waiting for Base Sepolia wallet confirmation…";
+  try {
+    const accounts = await provider.request({ method: "eth_requestAccounts" });
+    const chainId = await provider.request({ method: "eth_chainId" });
+    if (chainId !== state.baseConfig.chain_id_hex) {
+      try {
+        await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: state.baseConfig.chain_id_hex }] });
+      } catch (switchError) {
+        if (switchError.code !== 4902) throw switchError;
+        await provider.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: state.baseConfig.chain_id_hex,
+            chainName: state.baseConfig.network,
+            nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+            rpcUrls: [state.baseConfig.rpc_url],
+            blockExplorerUrls: [state.baseConfig.explorer_url],
+          }],
+        });
+      }
+    }
+    const transactionHash = await provider.request({
+      method: "eth_sendTransaction",
+      params: [{
+        from: accounts[0],
+        to: state.baseConfig.receipt_contract,
+        data: await encodeDecisionReceipt(state.treasuryEvaluation),
+      }],
+    });
+    elements.baseTransaction.href = `${state.baseConfig.explorer_url}/tx/${transactionHash}`;
+    elements.baseTransaction.hidden = false;
+    const receipt = await waitForTransaction(provider, transactionHash);
+    elements.baseStatus.textContent = receipt?.status === "0x1"
+      ? "Decision receipt confirmed on Base Sepolia."
+      : receipt ? "The Base transaction reverted." : "Transaction submitted; confirmation is still pending.";
+  } catch (error) {
+    elements.baseStatus.textContent = error instanceof Error ? error.message : "Base transaction was not submitted.";
+    elements.recordBase.disabled = false;
+  }
+});
+
+async function restoreActiveRun() {
+  const runId = window.localStorage.getItem("groundhog-active-run");
+  if (!runId) return;
+  try {
+    const response = await fetch(`/api/runs/${runId}`);
+    if (!response.ok) throw new Error("run not found");
+    const result = await response.json();
+    const completedLives = result.groundhog.lives.length;
+    if (completedLives === 0) return;
+    state.runId = runId;
+    state.result = result;
+    body.dataset.scene = "app";
+    showScreen("arena");
+    renderLife(0);
+    if (completedLives === 2) renderLife(1);
+    announce(`Restored experiment ${runId} from disk.`);
+  } catch {
+    window.localStorage.removeItem("groundhog-active-run");
+  }
+}
+
+loadBaseConfig();
+restoreActiveRun();

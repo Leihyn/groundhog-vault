@@ -8,3 +8,7 @@ dist/
 .DS_Store
 coverage/
 htmlcov/
+contracts/cache/
+contracts/out/
+broadcast/
+demo/*.mp4

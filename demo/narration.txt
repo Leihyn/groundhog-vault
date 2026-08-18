@@ -1,0 +1,13 @@
+Groundhog Vault is a treasury agent that remembers the cost of failure.
+
+This controlled experiment gives two agents the same capital, decision logic, market inputs, and deterministic outcomes. In Life One, both allocate thirty percent to MoonPool and lose eighteen thousand dollars.
+
+Both runtimes are then destroyed. The Sibyl database is the only state that survives.
+
+In Life Two, SunPool has a different name but the same underlying risk signature. A fresh Groundhog session recalls the prior incident and caps exposure at five percent. The memory-disabled control repeats thirty percent. Persistent memory preserves twelve thousand three hundred dollars.
+
+The evidence view links the original incident to the stored policy and the decision it changed.
+
+The treasury workflow accepts a user-submitted loss. A differently named proposal is then evaluated by a new agent session using the persisted Sibyl policy.
+
+That recommendation can be signed by the user and recorded as a decision receipt on Base Sepolia, linking the allocation to hashes of its policy and source incident. Groundhog never holds the treasury wallet or executes unrestricted transactions.

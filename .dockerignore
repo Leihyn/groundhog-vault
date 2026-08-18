@@ -1,0 +1,9 @@
+.git
+.venv
+.data
+*.egg-info
+__pycache__
+contracts/out
+contracts/cache
+tests
+docs
