@@ -32,6 +32,8 @@ Each round constructs a new `VaultAgent` and a new Sibyl client. The SQLite data
 
 Run metadata is written atomically under `.data/runs/`. An interrupted experiment can therefore be loaded and completed after the server process restarts.
 
+Treasury incidents are separated by a persistent random browser workspace ID, so one visitor's risk history cannot change another visitor's proposal. The corresponding Sibyl databases live under `.data/treasury/` and also survive restarts.
+
 Sibyl stores two records:
 
 - an incident event describing the loss and observed signals;
@@ -46,6 +48,8 @@ The second session retrieves the policy by signature, not protocol name.
 ```
 
 The tests cover incremental round execution, fresh-client persistence, decision causality, and the final capital difference.
+
+The repository also includes `scripts/e2e-test.mjs`, which exercises failure recovery, both experiment lives, reload restoration, the user treasury workflow, wallet absence, mocked Base deployment and receipt encoding, modal behavior, and mobile overflow through Chrome's debugging protocol.
 
 The **Treasury** view also accepts a user-supplied loss and evaluates a later proposal in a genuinely fresh session. This workflow uses the same persisted Sibyl policy path as the controlled experiment.
 

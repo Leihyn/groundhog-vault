@@ -38,18 +38,41 @@ contract RiskReceiptRegistryTest {
         bytes32 evaluationId = keccak256("evaluation-1");
         registry.recordDecision(evaluationId, 500, true, bytes32(uint256(1)), bytes32(uint256(2)));
 
-        try registry.recordDecision(
-            evaluationId, 500, true, bytes32(uint256(1)), bytes32(uint256(2))
-        ) {
-            revert("duplicate accepted");
-        } catch {}
+        (bool success,) = address(registry)
+            .call(
+                abi.encodeCall(
+                    registry.recordDecision,
+                    (evaluationId, 500, true, bytes32(uint256(1)), bytes32(uint256(2)))
+                )
+            );
+        require(!success, "duplicate accepted");
     }
 
     function testRejectsAllocationAboveOneHundredPercent() public {
-        try registry.recordDecision(
-            keccak256("evaluation-1"), 10_001, false, bytes32(0), bytes32(0)
-        ) {
-            revert("invalid allocation accepted");
-        } catch {}
+        (bool success,) = address(registry)
+            .call(
+                abi.encodeCall(
+                    registry.recordDecision,
+                    (keccak256("evaluation-1"), 10_001, false, bytes32(0), bytes32(0))
+                )
+            );
+        require(!success, "invalid allocation accepted");
+    }
+
+    function testRejectsZeroEvaluationId() public {
+        (bool success,) = address(registry)
+            .call(
+                abi.encodeCall(
+                    registry.recordDecision, (bytes32(0), 500, false, bytes32(0), bytes32(0))
+                )
+            );
+        require(!success, "zero evaluation id accepted");
+    }
+
+    function testAllowsOneHundredPercentBoundary() public {
+        bytes32 evaluationId = keccak256("evaluation-100-percent");
+        registry.recordDecision(evaluationId, 10_000, false, bytes32(0), bytes32(0));
+        (, uint16 allocationBps,,,,) = registry.receipts(evaluationId);
+        require(allocationBps == 10_000, "boundary allocation not stored");
     }
 }

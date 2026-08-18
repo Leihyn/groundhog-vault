@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any, Literal
 
-
 ArmName = Literal["groundhog", "amnesiac"]
 
 
@@ -20,7 +19,9 @@ class RiskSignals:
             and self.liquidity_concentration >= 0.60
             and self.exit_liquidity <= 0.40
         )
-        return "incentive-yield_concentrated-liquidity_shallow-exit" if high_risk else None
+        return (
+            "incentive-yield_concentrated-liquidity_shallow-exit" if high_risk else None
+        )
 
     def labels(self) -> tuple[str, ...]:
         labels: list[str] = []
@@ -60,7 +61,7 @@ class RiskPolicy:
         return body
 
     @classmethod
-    def from_body(cls, body: dict[str, Any]) -> "RiskPolicy":
+    def from_body(cls, body: dict[str, Any]) -> RiskPolicy:
         return cls(
             policy_id=str(body["policy_id"]),
             signature=str(body["signature"]),

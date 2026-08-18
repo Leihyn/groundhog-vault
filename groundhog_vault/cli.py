@@ -39,7 +39,10 @@ def _print_report(result: ExperimentResult) -> None:
     print(f"Groundhog final capital: {_money(result.groundhog.final_capital)}")
     print(f"Amnesiac final capital:  {_money(result.amnesiac.final_capital)}")
     print(f"Memory lift:             +{_money(result.memory_lift)}")
-    changed = result.groundhog.lives[1].decision.allocation_fraction != result.amnesiac.lives[1].decision.allocation_fraction
+    changed = (
+        result.groundhog.lives[1].decision.allocation_fraction
+        != result.amnesiac.lives[1].decision.allocation_fraction
+    )
     print(f"Decision changed by persisted memory: {'YES' if changed else 'NO'}")
 
 
@@ -53,7 +56,9 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
     demo = subparsers.add_parser("demo", help="run the paired fresh-session experiment")
     demo.add_argument("--database", type=Path, default=None)
-    demo.add_argument("--json", action="store_true", help="emit machine-readable output")
+    demo.add_argument(
+        "--json", action="store_true", help="emit machine-readable output"
+    )
     args = parser.parse_args()
 
     if args.command == "demo":

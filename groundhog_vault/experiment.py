@@ -1,15 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Callable
 from uuid import uuid4
 
 from .agent import VaultAgent
 from .domain import ArmName, ArmResult, Decision, ExperimentResult, LifeResult
 from .memory import NoMemory, RiskMemory, SibylRiskMemory
 from .scenarios import DISGUISED_DEPEG_SEQUENCE
-
 
 MemoryFactory = Callable[[], RiskMemory]
 
@@ -27,19 +26,22 @@ def _run_life(
     # This object is intentionally reconstructed for every life. No agent
     # state survives except what the memory provider persisted externally.
     memory = memory_factory()
-    agent = VaultAgent(arm=arm, session_id=session_id, memory=memory)
-    decision = agent.decide(opportunity)
+    try:
+        agent = VaultAgent(arm=arm, session_id=session_id, memory=memory)
+        decision = agent.decide(opportunity)
 
-    amount_at_risk = starting_capital * decision.allocation_fraction
-    loss = amount_at_risk * opportunity.loss_fraction_if_crisis
-    ending_capital = starting_capital - loss
-    incident_id = f"incident:{arm}:life-{life_number}:{opportunity.opportunity_id}"
+        amount_at_risk = starting_capital * decision.allocation_fraction
+        loss = amount_at_risk * opportunity.loss_fraction_if_crisis
+        ending_capital = starting_capital - loss
+        incident_id = f"incident:{arm}:life-{life_number}:{opportunity.opportunity_id}"
 
-    memory.remember_failure(
-        incident_id=incident_id,
-        opportunity=opportunity,
-        loss=loss,
-    )
+        memory.remember_failure(
+            incident_id=incident_id,
+            opportunity=opportunity,
+            loss=loss,
+        )
+    finally:
+        memory.close()
     return LifeResult(
         life_number=life_number,
         arm=arm,
@@ -76,8 +78,14 @@ class ExperimentSession:
         if life_number is None:
             raise RuntimeError("experiment is already complete")
 
-        groundhog_capital = self.groundhog_lives[-1].ending_capital if self.groundhog_lives else 100_000.0
-        amnesiac_capital = self.amnesiac_lives[-1].ending_capital if self.amnesiac_lives else 100_000.0
+        groundhog_capital = (
+            self.groundhog_lives[-1].ending_capital
+            if self.groundhog_lives
+            else 100_000.0
+        )
+        amnesiac_capital = (
+            self.amnesiac_lives[-1].ending_capital if self.amnesiac_lives else 100_000.0
+        )
         groundhog_life = _run_life(
             arm="groundhog",
             life_number=life_number,
@@ -97,19 +105,26 @@ class ExperimentSession:
     def snapshot(self) -> dict[str, object]:
         memory_lift = None
         if self.complete:
-            memory_lift = self.groundhog_lives[-1].ending_capital - self.amnesiac_lives[-1].ending_capital
+            memory_lift = (
+                self.groundhog_lives[-1].ending_capital
+                - self.amnesiac_lives[-1].ending_capital
+            )
         return {
             "run_id": self.run_id,
             "database_path": str(self.database_path),
             "next_life_number": self.next_life_number,
             "complete": self.complete,
-            "groundhog": asdict(ArmResult(arm="groundhog", lives=tuple(self.groundhog_lives))),
-            "amnesiac": asdict(ArmResult(arm="amnesiac", lives=tuple(self.amnesiac_lives))),
+            "groundhog": asdict(
+                ArmResult(arm="groundhog", lives=tuple(self.groundhog_lives))
+            ),
+            "amnesiac": asdict(
+                ArmResult(arm="amnesiac", lives=tuple(self.amnesiac_lives))
+            ),
             "memory_lift": memory_lift,
         }
 
     @classmethod
-    def from_snapshot(cls, payload: dict[str, object]) -> "ExperimentSession":
+    def from_snapshot(cls, payload: dict[str, object]) -> ExperimentSession:
         def restore_life(raw: dict[str, object]) -> LifeResult:
             decision_raw = raw["decision"]
             if not isinstance(decision_raw, dict):
@@ -138,7 +153,9 @@ class ExperimentSession:
 
         def restore_arm(name: ArmName) -> list[LifeResult]:
             raw_arm = payload[name]
-            if not isinstance(raw_arm, dict) or not isinstance(raw_arm.get("lives"), list):
+            if not isinstance(raw_arm, dict) or not isinstance(
+                raw_arm.get("lives"), list
+            ):
                 raise TypeError(f"{name} arm is invalid")
             return [restore_life(raw) for raw in raw_arm["lives"]]
 
@@ -159,7 +176,9 @@ def create_experiment_session(
     )
 
 
-def run_experiment(*, database_path: str | Path, run_id: str | None = None) -> ExperimentResult:
+def run_experiment(
+    *, database_path: str | Path, run_id: str | None = None
+) -> ExperimentResult:
     session = create_experiment_session(database_path=database_path, run_id=run_id)
     while not session.complete:
         session.run_next_life()

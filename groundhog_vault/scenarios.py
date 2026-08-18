@@ -1,6 +1,5 @@
 from .domain import Opportunity, RiskSignals
 
-
 DISGUISED_DEPEG_SEQUENCE = (
     Opportunity(
         opportunity_id="life-1-moon-pool",

@@ -1,5 +1,15 @@
 const body = document.body;
 
+function persistentWorkspaceId() {
+  const stored = window.localStorage.getItem("groundhog-treasury-workspace") || "";
+  if (/^[a-f0-9]{32}$/.test(stored)) return stored;
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  const created = [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  window.localStorage.setItem("groundhog-treasury-workspace", created);
+  return created;
+}
+
 const state = {
   screen: "arena",
   step: "ready-one",
@@ -8,6 +18,7 @@ const state = {
   treasuryIncident: null,
   treasuryEvaluation: null,
   baseConfig: null,
+  treasuryWorkspaceId: persistentWorkspaceId(),
   lastFocus: null,
   overlayFocus: null,
 };
@@ -323,6 +334,7 @@ document.addEventListener("keydown", (event) => {
 function workflowPayload(form, includeLoss) {
   const values = new FormData(form);
   const payload = {
+    workspace_id: state.treasuryWorkspaceId,
     protocol_name: values.get("protocol_name"),
     advertised_apy: Number(values.get("advertised_apy")) / 100,
     signals: {
@@ -474,6 +486,7 @@ async function connectBaseWallet(provider) {
           blockExplorerUrls: [state.baseConfig.explorer_url],
         }],
       });
+      await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: state.baseConfig.chain_id_hex }] });
     }
   }
   return accounts[0];

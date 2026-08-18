@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import re
+import sys
 import threading
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -15,15 +16,24 @@ from .experiment import ExperimentSession
 from .storage import ExperimentStore
 from .treasury import TreasuryWorkflow
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-WEB_ROOT = PROJECT_ROOT / "web"
-DATA_ROOT = PROJECT_ROOT / ".data"
+SOURCE_WEB_ROOT = PROJECT_ROOT / "web"
+INSTALLED_WEB_ROOT = Path(sys.prefix) / "share" / "groundhog-vault" / "web"
+CONFIGURED_WEB_ROOT = os.environ.get("GROUNDHOG_WEB_ROOT")
+WEB_ROOT = (
+    Path(CONFIGURED_WEB_ROOT).expanduser()
+    if CONFIGURED_WEB_ROOT
+    else (SOURCE_WEB_ROOT if SOURCE_WEB_ROOT.is_dir() else INSTALLED_WEB_ROOT)
+)
+DATA_ROOT = Path(
+    os.environ.get("GROUNDHOG_DATA_ROOT", Path.cwd() / ".data")
+).expanduser()
 STORE = ExperimentStore(DATA_ROOT)
-TREASURY = TreasuryWorkflow(DATA_ROOT / "treasury.db")
+TREASURY_ROOT = DATA_ROOT / "treasury"
 STORE_LOCK = threading.Lock()
 LIFE_ENDPOINT = re.compile(r"^/api/runs/([a-f0-9]{32})/lives$")
 RUN_ENDPOINT = re.compile(r"^/api/runs/([a-f0-9]{32})$")
+WORKSPACE_ID = re.compile(r"^[a-f0-9]{32}$")
 MAX_REQUEST_BYTES = 16_384
 
 
@@ -39,7 +49,28 @@ class GroundhogRequestHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, directory=str(WEB_ROOT), **kwargs)
 
-    def _send_json(self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK) -> None:
+    def end_headers(self) -> None:
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src https://fonts.gstatic.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "frame-ancestors 'none'; "
+            "form-action 'self'",
+        )
+        super().end_headers()
+
+    def _send_json(
+        self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK
+    ) -> None:
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -53,16 +84,18 @@ class GroundhogRequestHandler(SimpleHTTPRequestHandler):
             content_length = int(self.headers.get("Content-Length", "0"))
         except ValueError as error:
             raise ValueError("invalid content length") from error
+        if content_length < 0:
+            raise ValueError("invalid content length")
         if content_length > MAX_REQUEST_BYTES:
             raise OverflowError("request body is too large")
         if content_length == 0:
             return {}
         payload = json.loads(self.rfile.read(content_length))
         if not isinstance(payload, dict):
-            raise ValueError("request body must be a JSON object")
+            raise TypeError("request body must be a JSON object")
         return payload
 
-    def do_GET(self) -> None:  # noqa: N802 - standard library handler name
+    def do_GET(self) -> None:
         path = urlsplit(self.path).path
         if path == "/api/health":
             self._send_json({"ok": True, "service": "groundhog-vault"})
@@ -95,7 +128,7 @@ class GroundhogRequestHandler(SimpleHTTPRequestHandler):
             return
         super().do_GET()
 
-    def do_POST(self) -> None:  # noqa: N802 - standard library handler name
+    def do_POST(self) -> None:
         try:
             path = urlsplit(self.path).path
             payload = self._read_json()
@@ -112,7 +145,9 @@ class GroundhogRequestHandler(SimpleHTTPRequestHandler):
                 with STORE_LOCK:
                     session = STORE.load(run_id)
                     if session is None:
-                        self._send_json({"error": "run_not_found"}, HTTPStatus.NOT_FOUND)
+                        self._send_json(
+                            {"error": "run_not_found"}, HTTPStatus.NOT_FOUND
+                        )
                         return
                     if session.complete:
                         self._send_json(
@@ -127,14 +162,28 @@ class GroundhogRequestHandler(SimpleHTTPRequestHandler):
                 return
 
             if path == "/api/treasury/incidents":
+                workspace = str(payload.pop("workspace_id", ""))
+                if not WORKSPACE_ID.fullmatch(workspace):
+                    raise ValueError(
+                        "workspace_id must be 32 lowercase hexadecimal characters"
+                    )
                 with STORE_LOCK:
-                    incident = TREASURY.submit_incident(payload)
+                    incident = TreasuryWorkflow(
+                        TREASURY_ROOT / f"{workspace}.db"
+                    ).submit_incident(payload)
                 self._send_json(incident, HTTPStatus.CREATED)
                 return
 
             if path == "/api/treasury/evaluations":
+                workspace = str(payload.pop("workspace_id", ""))
+                if not WORKSPACE_ID.fullmatch(workspace):
+                    raise ValueError(
+                        "workspace_id must be 32 lowercase hexadecimal characters"
+                    )
                 with STORE_LOCK:
-                    evaluation = TREASURY.evaluate_proposal(payload)
+                    evaluation = TreasuryWorkflow(
+                        TREASURY_ROOT / f"{workspace}.db"
+                    ).evaluate_proposal(payload)
                 self._send_json(evaluation)
                 return
 
@@ -149,7 +198,7 @@ class GroundhogRequestHandler(SimpleHTTPRequestHandler):
                 {"error": "invalid_request", "detail": str(error)},
                 HTTPStatus.UNPROCESSABLE_ENTITY,
             )
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - keep the HTTP process alive at the boundary
             self._send_json(
                 {"error": "experiment_failed", "detail": str(error)},
                 HTTPStatus.INTERNAL_SERVER_ERROR,

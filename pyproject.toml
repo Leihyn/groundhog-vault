@@ -18,3 +18,15 @@ groundhog-serve = "groundhog_vault.server:main"
 
 [tool.setuptools.packages.find]
 include = ["groundhog_vault*"]
+
+[tool.setuptools.data-files]
+"share/groundhog-vault/web" = [
+  "web/app.js",
+  "web/favicon.svg",
+  "web/index.html",
+  "web/risk-receipt-bytecode.txt",
+]
+"share/groundhog-vault/web/styles" = [
+  "web/styles/app.css",
+  "web/styles/tokens.css",
+]

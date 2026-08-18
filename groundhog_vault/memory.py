@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, Self
 
 from .domain import Opportunity, RiskPolicy
 
@@ -18,6 +18,8 @@ class RiskMemory(Protocol):
         loss: float,
     ) -> RiskPolicy | None: ...
 
+    def close(self) -> None: ...
+
 
 class NoMemory:
     def recall(self, opportunity: Opportunity) -> None:
@@ -30,6 +32,9 @@ class NoMemory:
         opportunity: Opportunity,
         loss: float,
     ) -> None:
+        return None
+
+    def close(self) -> None:
         return None
 
 
@@ -48,6 +53,20 @@ class SibylRiskMemory:
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         self._client = MemoryClient.local(str(self.database_path))
 
+    def close(self) -> None:
+        # The current SDK exposes lifecycle management on its storage object.
+        # Guard the access so a later SDK release can remove that implementation detail.
+        storage = getattr(self._client, "_storage", None)
+        close = getattr(storage, "close", None)
+        if callable(close):
+            close()
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.close()
+
     def recall(self, opportunity: Opportunity) -> RiskPolicy | None:
         signature = opportunity.signals.signature()
         if signature is None:
@@ -62,7 +81,9 @@ class SibylRiskMemory:
 
         body = entity.get("body")
         if not isinstance(body, dict):
-            raise TypeError(f"Sibyl returned a non-object policy body for {signature!r}")
+            raise TypeError(
+                f"Sibyl returned a non-object policy body for {signature!r}"
+            )
         return RiskPolicy.from_body(body)
 
     def remember_failure(
