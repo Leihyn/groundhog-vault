@@ -58,6 +58,6 @@ Required safeguards:
 - Mainnet funds
 - Live protocol integrations
 - Price prediction
-- Base contracts
+- Base mainnet deployment (receipts are Sepolia-only and user-signed)
 - Virtuals coordination
 - Model-generated transactions
