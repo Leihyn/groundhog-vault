@@ -16,28 +16,8 @@ Captions are burned into the picture on every scene, so they work on any player 
 subtitle track: on YouTube, open Subtitles, add a track, and upload that file so the video is searchable and
 screen-reader friendly.
 
-Suggested YouTube title: **Groundhog Vault: proving agent memory changes a treasury decision**
-
-Suggested description:
-
-```
-Two treasury agents get the same capital, the same decision logic, and the same market. Both runtimes are
-destroyed between rounds. Only one can read a persisted Sibyl risk policy.
-
-In round one both allocate 30% to MoonPool and lose $18,000. In round two SunPool has a different name but
-the same risk signature. Groundhog recalls the policy and caps exposure at 5%. Amnesiac repeats 30%.
-Memory alone preserves $12,300.
-
-The recommendation is signed by the user as a decision receipt on Base Sepolia. The agent never holds the wallet.
-
-Code: https://github.com/Leihyn/groundhog-vault
-Receipt: https://base-sepolia.blockscout.com/tx/0x532481c39d68fedb7d102407ee819cc19478bcd02ee7bc614ffb8508ad66e0e9
-Built for the Sibyl hackathon.
-```
-
-```
-[VIDEO URL]
-```
+The full upload package (title, description with chapters, tags, and settings) is in
+[`demo/youtube.md`](youtube.md). Paste from there.
 
 ## Post URLs (one per line)
 
