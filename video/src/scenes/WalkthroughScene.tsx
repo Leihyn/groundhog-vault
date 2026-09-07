@@ -29,7 +29,7 @@ const Step: React.FC<{ n: string; title: string; body: string; code: string[]; d
 };
 
 export const WalkthroughScene: React.FC = () => (
-  <Scene name="walkthrough" captions={false} vo="vo_walkthrough.wav">
+  <Scene name="walkthrough" vo="vo_walkthrough.wav">
     <Label style={{ position: "absolute", top: 66, left: 80 }}>Memory is the only variable</Label>
     <FadeIn delay={4} style={{ position: "absolute", top: 96, left: 80 }}>
       <div style={{ fontFamily: SERIF, fontSize: 54, color: COLORS.paper0 }}>Persist. Recall. Decide.</div>

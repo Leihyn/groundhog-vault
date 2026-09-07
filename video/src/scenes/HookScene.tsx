@@ -17,7 +17,7 @@ export const HookScene: React.FC = () => {
   const frame = useCurrentFrame(); const { fps } = useVideoConfig();
   const lossScale = spring({ frame: frame - 118, fps, from: 0.93, to: 1, config: { damping: 18 } });
   return (
-    <Scene name="hook" captions={false} vo="vo_hook.wav" background={`radial-gradient(ellipse at 50% 42%, ${COLORS.bg2} 0%, ${COLORS.bg} 62%)`}>
+    <Scene name="hook" vo="vo_hook.wav" background={`radial-gradient(ellipse at 50% 42%, ${COLORS.bg2} 0%, ${COLORS.bg} 62%)`}>
       <Label style={{ position: "absolute", top: 72, left: 80 }}>Controlled loop / Life 01</Label>
       <Phase from={0} to={104}>
         <div style={{ fontFamily: SERIF, fontSize: 84, color: COLORS.paper0, textAlign: "center", lineHeight: 1.1, maxWidth: 1400 }}>

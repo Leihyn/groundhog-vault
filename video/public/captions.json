@@ -18,7 +18,7 @@
   {
    "text": "Then the session ends, and the agent forgets it ever happened.",
    "start": 7.78,
-   "end": 10.92
+   "end": 11.65
   }
  ],
  "product": [
@@ -30,7 +30,7 @@
   {
    "text": "the cost of failure.",
    "start": 3.26,
-   "end": 4.38
+   "end": 5.45
   }
  ],
  "setup": [
@@ -52,7 +52,7 @@
   {
    "text": "Only one of them can read Sibyl memory.",
    "start": 8.64,
-   "end": 10.06
+   "end": 11.15
   }
  ],
  "life1": [
@@ -74,7 +74,7 @@
   {
    "text": "Identical by design.",
    "start": 7.22,
-   "end": 8.0
+   "end": 8.95
   }
  ],
  "destroy": [
@@ -101,7 +101,7 @@
   {
    "text": "not the protocol name.",
    "start": 10.94,
-   "end": 11.98
+   "end": 12.85
   }
  ],
  "life2": [
@@ -138,7 +138,7 @@
   {
    "text": "Memory preserved twelve thousand three hundred dollars.",
    "start": 12.5,
-   "end": 14.98
+   "end": 16.25
   }
  ],
  "evidence": [
@@ -160,7 +160,7 @@
   {
    "text": "Every recommendation points back to the loss that taught it.",
    "start": 11.36,
-   "end": 14.16
+   "end": 15.15
   }
  ],
  "walkthrough": [
@@ -182,7 +182,7 @@
   {
    "text": "Change the decision.",
    "start": 6.12,
-   "end": 7.18
+   "end": 8.85
   }
  ],
  "treasury": [
@@ -209,7 +209,7 @@
   {
    "text": "and it cites the policy and the incident behind it.",
    "start": 11.1,
-   "end": 14.26
+   "end": 15.15
   }
  ],
  "base": [
@@ -231,7 +231,7 @@
   {
    "text": "The agent never holds the wallet.",
    "start": 9.94,
-   "end": 11.2
+   "end": 12.75
   }
  ],
  "production": [
@@ -253,7 +253,7 @@
   {
    "text": "attached, and human approval before anything executes.",
    "start": 9.54,
-   "end": 12.08
+   "end": 13.05
   }
  ],
  "close": [
@@ -265,7 +265,7 @@
   {
    "text": "Do not pay for the same lesson twice.",
    "start": 1.06,
-   "end": 3.78
+   "end": 5.25
   }
  ]
 }

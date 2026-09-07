@@ -12,7 +12,7 @@ https://github.com/Leihyn/groundhog-vault
 
 Upload `demo/groundhog-vault-demo.mp4` (2 min 25 s, 1080p, captions burned in) to YouTube as unlisted or to Loom, then paste the link here.
 
-Captions are burned into the picture, so they work on any player. `demo/captions.srt` is the same text as a
+Captions are burned into the picture on every scene, so they work on any player and cannot be switched off. `demo/captions.srt` is the same text as a
 subtitle track: on YouTube, open Subtitles, add a track, and upload that file so the video is searchable and
 screen-reader friendly.
 

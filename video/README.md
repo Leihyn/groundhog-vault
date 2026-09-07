@@ -40,8 +40,10 @@ Audio files live at `public/vo_<scene>.wav` and are gitignored. Scene durations
 in `src/constants.ts` are derived from those files, so replacing the narration
 means updating both.
 
-Captions are burned in rather than left to the player, because judges often
-watch muted. `public/captions.json` holds per-scene chunks with timings; it is
+Captions are burned into the picture rather than left to the player, because
+judges often watch muted and a subtitle track can be switched off or ignored.
+Every scene carries them, title cards included, and each scene's closing caption
+holds until the scene ends so the text never blinks out mid-beat. `public/captions.json` holds per-scene chunks with timings; it is
 built by transcribing each narration file for word timings and then aligning
 those timings onto the *written* script. That alignment matters: a synthesized
 voice slurs rare words, and the caption has to show `Base Sepolia` even when the

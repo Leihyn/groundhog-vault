@@ -11,7 +11,7 @@ export const ProductScene: React.FC = () => {
   const frame = useCurrentFrame(); const { fps } = useVideoConfig();
   const s = spring({ frame, fps, from: 0.94, to: 1, config: { damping: 22 } });
   return (
-    <Scene name="product" captions={false} vo="vo_product.wav" background={`radial-gradient(ellipse at 50% 45%, #1a1d14 0%, ${COLORS.bg} 60%)`}>
+    <Scene name="product" vo="vo_product.wav" background={`radial-gradient(ellipse at 50% 45%, #1a1d14 0%, ${COLORS.bg} 60%)`}>
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
         <div style={{ transform: `scale(${s})` }}><Wordmark size={150} /></div>
         <FadeIn delay={22}><div style={{ fontFamily: SERIF, fontSize: 40, color: COLORS.paper1, marginTop: 44 }}>A treasury agent that remembers the cost of failure.</div></FadeIn>
