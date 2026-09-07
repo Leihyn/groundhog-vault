@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090a08">
   <meta name="description" content="Groundhog Vault proves that persistent risk memory changes autonomous treasury decisions across fresh sessions.">
+  <meta name="ory-verify" content="PASTE_GROUNDHOG_TOKEN_HERE">
   <title>Groundhog Vault — Risk Memory Arena</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,7 +39,7 @@
       </div>
       <div class="controller-foot"><span>Same logic and market</span><span>Only memory differs</span></div>
     </div>
-    <footer class="intro-footer"><span>Controlled experiment</span><span>Same logic · capital · market state</span><span>Only memory differs</span></footer>
+    <footer class="intro-footer"><span>Controlled experiment</span><span>Same logic · capital · market state</span><span>Only memory differs</span><span><a href="https://x.com/faruukku" target="_blank" rel="noreferrer">@faruukku</a></span></footer>
   </section>
 
   <div class="app-shell" id="main-content">
@@ -56,6 +57,7 @@
       <div class="nav-status">
         <p class="status-line"><span class="status-dot" aria-hidden="true"></span><span id="nav-status">Ready / no run</span></p>
         <p>The simulation never moves treasury funds. Base receipts are user-signed testnet transactions.</p>
+        <p><a href="https://x.com/faruukku" target="_blank" rel="noreferrer">@faruukku</a></p>
       </div>
     </aside>
 
@@ -164,7 +166,7 @@
           </section>
 
           <section class="base-receipt" aria-labelledby="base-receipt-title">
-            <div><span>Base Sepolia</span><h3 id="base-receipt-title">Onchain decision receipt</h3><p id="base-status">Checking contract configuration…</p></div>
+            <div><span>Base Sepolia</span><h3 id="base-receipt-title">Onchain decision receipt</h3><p id="base-status">Checking contract configuration…</p><label class="wallet-picker" id="wallet-picker-label" hidden><span>Sign with</span><select id="wallet-picker" aria-label="Browser wallet"></select></label></div>
             <button class="secondary-action" id="record-base" type="button" disabled>Record on Base</button>
             <a id="base-transaction" href="#" target="_blank" rel="noreferrer" hidden>View transaction</a>
           </section>

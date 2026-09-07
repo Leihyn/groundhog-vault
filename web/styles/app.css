@@ -493,6 +493,28 @@ blockquote small { display: block; margin-top: var(--space-16); font-family: var
 }
 
 .base-receipt p { margin: var(--space-2) 0 0; color: var(--paper-2); }
+.wallet-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--paper-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.wallet-picker select {
+  height: 32px;
+  padding: 0 var(--space-2);
+  border: var(--border) solid var(--line-1);
+  background: var(--ink-1);
+  color: var(--paper-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  text-transform: none;
+  letter-spacing: 0;
+}
 .base-receipt a { color: var(--signal); font-family: var(--font-mono); font-size: var(--text-sm); }
 
 .mapping-table { border-bottom: var(--border) solid var(--line-0); }

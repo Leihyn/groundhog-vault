@@ -72,6 +72,8 @@ forge create src/RiskReceiptRegistry.sol:RiskReceiptRegistry \
   --account deployer
 ```
 
+A registry is deployed on Base Sepolia at [`0x980ea2442f51f39f7d0b257ec8c3449e630434f4`](https://sepolia-explorer.base.org/address/0x980ea2442f51f39f7d0b257ec8c3449e630434f4) (creation tx [`0x7395ab…8f4a`](https://sepolia-explorer.base.org/tx/0x7395ab0be57dcdb56c6fabe7cf314cc38b5295493a9f44a2e48dd5a4ed8e8f4a)); its bytecode matches `forge build` output byte for byte. Example receipt: [`0x532481…e0e9`](https://sepolia-explorer.base.org/tx/0x532481c39d68fedb7d102407ee819cc19478bcd02ee7bc614ffb8508ad66e0e9) records a 5% allocation with memory applied.
+
 Set `BASE_RECEIPT_CONTRACT` to the deployed address before starting the server. The Treasury view will then let users write decision receipts to Base Sepolia.
 
 For a first deployment, leave the variable unset and choose **Deploy receipt contract** in the Treasury view. The connected wallet deploys the same compiled contract and the browser retains its address. Set `BASE_RECEIPT_CONTRACT` on the hosted service afterward so every visitor uses that registry.

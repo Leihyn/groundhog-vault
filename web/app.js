@@ -59,6 +59,8 @@ const elements = {
   baseStatus: document.querySelector("#base-status"),
   recordBase: document.querySelector("#record-base"),
   baseTransaction: document.querySelector("#base-transaction"),
+  walletPicker: document.querySelector("#wallet-picker"),
+  walletPickerLabel: document.querySelector("#wallet-picker-label"),
 };
 
 const money = new Intl.NumberFormat("en-US", {
@@ -468,14 +470,22 @@ async function waitForTransaction(provider, transactionHash) {
   return null;
 }
 
+function isUnrecognizedChain(error) {
+  const code = error?.code ?? error?.data?.originalError?.code ?? error?.data?.code;
+  if (code === 4902 || code === "4902") return true;
+  const message = String(error?.message || error?.data?.message || "");
+  return /unrecognized chain|chain (id )?.*not (been )?added|try adding the chain|4902/i.test(message);
+}
+
 async function connectBaseWallet(provider) {
   const accounts = await provider.request({ method: "eth_requestAccounts" });
   const chainId = await provider.request({ method: "eth_chainId" });
-  if (chainId !== state.baseConfig.chain_id_hex) {
+  if (String(chainId).toLowerCase() !== state.baseConfig.chain_id_hex) {
     try {
       await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: state.baseConfig.chain_id_hex }] });
     } catch (switchError) {
-      if (switchError.code !== 4902) throw switchError;
+      if (!isUnrecognizedChain(switchError)) throw switchError;
+      elements.baseStatus.textContent = "Adding Base Sepolia to the wallet…";
       await provider.request({
         method: "wallet_addEthereumChain",
         params: [{
@@ -515,40 +525,70 @@ async function deployReceiptContract(provider) {
 }
 
 const discoveredWallets = [];
+
+function renderWalletPicker() {
+  if (!elements.walletPicker) return;
+  const previous = elements.walletPicker.value;
+  elements.walletPicker.replaceChildren(
+    ...discoveredWallets.map((entry) => {
+      const option = document.createElement("option");
+      option.value = entry.info.uuid;
+      option.textContent = entry.info.name || entry.info.rdns || "Injected wallet";
+      return option;
+    }),
+  );
+  const metamask = discoveredWallets.find((entry) => entry.info?.rdns === "io.metamask");
+  const keep = discoveredWallets.some((entry) => entry.info.uuid === previous) ? previous : metamask?.info.uuid;
+  if (keep) elements.walletPicker.value = keep;
+  elements.walletPickerLabel.hidden = discoveredWallets.length < 2;
+}
+
 window.addEventListener("eip6963:announceProvider", (event) => {
   const detail = event.detail;
-  if (detail?.provider && !discoveredWallets.some((entry) => entry.info?.uuid === detail.info?.uuid)) {
-    discoveredWallets.push(detail);
-  }
+  if (!detail?.provider || !detail.info?.uuid) return;
+  if (discoveredWallets.some((entry) => entry.info.uuid === detail.info.uuid)) return;
+  discoveredWallets.push(detail);
+  renderWalletPicker();
 });
 window.dispatchEvent(new Event("eip6963:requestProvider"));
 
-function selectWalletProvider() {
-  const preferred = discoveredWallets.find((entry) => entry.info?.rdns === "io.metamask")
-    || discoveredWallets.find((entry) => entry.info?.rdns !== "app.phantom");
-  if (preferred) return preferred.provider;
+function selectWallet() {
+  const chosen = discoveredWallets.find((entry) => entry.info.uuid === elements.walletPicker?.value)
+    || discoveredWallets.find((entry) => entry.info?.rdns === "io.metamask")
+    || discoveredWallets[0];
+  if (chosen) return { provider: chosen.provider, name: chosen.info.name || chosen.info.rdns };
   const injected = window.ethereum;
   if (!injected) return null;
   const candidates = Array.isArray(injected.providers) ? injected.providers : [injected];
-  return candidates.find((candidate) => candidate.isMetaMask && !candidate.isPhantom && !candidate.isRabby)
+  const provider = candidates.find((candidate) => candidate.isMetaMask && !candidate.isPhantom && !candidate.isRabby)
     || candidates.find((candidate) => candidate.isMetaMask)
     || injected;
+  return { provider, name: provider.isMetaMask ? "MetaMask" : "the injected wallet" };
 }
 
 function walletErrorMessage(error) {
   if (error?.code === 4001 || error?.code === "ACTION_REJECTED") return "Wallet request was rejected.";
   const message = error?.data?.message || error?.message || (typeof error === "string" ? error : "");
-  return message ? `Wallet error: ${message}` : "Base transaction was not submitted.";
+  if (message) return `Wallet error: ${message}`;
+  try {
+    const encoded = JSON.stringify(error);
+    if (encoded && encoded !== "{}" && encoded !== "null") return `Wallet error: ${encoded}`;
+  } catch {
+    // fall through to the generic line
+  }
+  return "Base transaction was not submitted. The selected wallet returned no error detail; try another wallet in the picker.";
 }
 
 elements.recordBase.addEventListener("click", async () => {
   if (!state.baseConfig) return;
-  const provider = selectWalletProvider();
-  if (!provider) {
+  const wallet = selectWallet();
+  if (!wallet) {
     elements.baseStatus.textContent = "A browser wallet is required to record the receipt.";
     return;
   }
+  const provider = wallet.provider;
   elements.recordBase.disabled = true;
+  elements.baseStatus.textContent = `Requesting accounts from ${wallet.name}…`;
   try {
     if (!state.baseConfig.receipt_contract) {
       await deployReceiptContract(provider);
