@@ -1,13 +1,32 @@
+# Groundhog Vault demo narration (scene, seconds)
+
+[hook · 9.66s]
+A treasury agent puts thirty percent into a pool. The pool depegs. Eighteen thousand dollars, gone. Then the session ends, and the agent forgets it ever happened.
+
+[product · 3.85s]
 Groundhog Vault is a treasury agent that remembers the cost of failure.
 
-This controlled experiment gives two agents the same capital, decision logic, market inputs, and deterministic outcomes. In Life One, both allocate thirty percent to MoonPool and lose eighteen thousand dollars.
+[setup · 8.89s]
+It is a controlled experiment. Two agents get the same capital, the same decision logic, and the same market. Only one of them can read Sibyl memory.
 
-Both runtimes are then destroyed. The Sibyl database is the only state that survives.
+[life1 · 7.04s]
+Life one. Both allocate thirty percent to MoonPool. Both lose eighteen thousand dollars. Identical by design.
 
-In Life Two, SunPool has a different name but the same underlying risk signature. A fresh Groundhog session recalls the prior incident and caps exposure at five percent. The memory-disabled control repeats thirty percent. Persistent memory preserves twelve thousand three hundred dollars.
+[destroy · 10.54s]
+Then both runtimes are destroyed. The only survivor is Sibyl: an incident entity, an append-only event, and a risk policy keyed by the risk signature, not the protocol name.
 
-The evidence view links the original incident to the stored policy and the decision it changed.
+[life2 · 13.54s]
+Life two. SunPool has a new name, but the same signature. A fresh Groundhog session recalls the policy and caps exposure at five percent. Amnesiac repeats thirty. Memory preserved twelve thousand three hundred dollars.
 
-The treasury workflow accepts a user-submitted loss. A differently named proposal is then evaluated by a new agent session using the persisted Sibyl policy.
+[walkthrough · 6.29s]
+That is the whole claim. Persist the loss. Recall it by signature in a fresh session. Change the decision.
 
-That recommendation can be signed by the user and recorded as a decision receipt on Base Sepolia, linking the allocation to hashes of its policy and source incident. Groundhog never holds the treasury wallet or executes unrestricted transactions.
+[treasury · 12.54s]
+It works on a treasury's own history too. Record a real incident, then evaluate a differently named proposal in a brand new session. The recommendation is five percent, and it cites the policy and the incident behind it.
+
+[base · 9.91s]
+The user signs that recommendation as a decision receipt on Base Sepolia, linking the allocation to hashes of its policy and source incident. The agent never holds the wallet.
+
+[close · 3.41s]
+Groundhog Vault. Do not pay for the same lesson twice.
+
