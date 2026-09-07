@@ -1,32 +1,42 @@
-# Groundhog Vault demo narration (scene, seconds)
+# Groundhog Vault demo narration
 
-[hook · 9.66s]
+One block per scene. Scene lengths are derived from the recorded audio, so
+changing a line means re-running the re-time step before rendering.
+
+[hook · scene 12.4s · starts 0:00.0]
 A treasury agent puts thirty percent into a pool. The pool depegs. Eighteen thousand dollars, gone. Then the session ends, and the agent forgets it ever happened.
 
-[product · 3.85s]
+[product · scene 6.2s · starts 0:12.4]
 Groundhog Vault is a treasury agent that remembers the cost of failure.
 
-[setup · 8.89s]
+[setup · scene 11.9s · starts 0:18.6]
 It is a controlled experiment. Two agents get the same capital, the same decision logic, and the same market. Only one of them can read Sibyl memory.
 
-[life1 · 7.04s]
+[life1 · scene 9.7s · starts 0:30.5]
 Life one. Both allocate thirty percent to MoonPool. Both lose eighteen thousand dollars. Identical by design.
 
-[destroy · 10.54s]
+[destroy · scene 13.6s · starts 0:40.2]
 Then both runtimes are destroyed. The only survivor is Sibyl: an incident entity, an append-only event, and a risk policy keyed by the risk signature, not the protocol name.
 
-[life2 · 13.54s]
+[life2 · scene 17.0s · starts 0:53.8]
 Life two. SunPool has a new name, but the same signature. A fresh Groundhog session recalls the policy and caps exposure at five percent. Amnesiac repeats thirty. Memory preserved twelve thousand three hundred dollars.
 
-[walkthrough · 6.29s]
+[evidence · scene 15.9s · starts 1:10.8]
+The evidence view traces it end to end. The MoonPool incident, the policy it produced, and the fresh decision that policy changed. Every recommendation points back to the loss that taught it.
+
+[walkthrough · scene 9.6s · starts 1:26.7]
 That is the whole claim. Persist the loss. Recall it by signature in a fresh session. Change the decision.
 
-[treasury · 12.54s]
+[treasury · scene 15.9s · starts 1:36.3]
 It works on a treasury's own history too. Record a real incident, then evaluate a differently named proposal in a brand new session. The recommendation is five percent, and it cites the policy and the incident behind it.
 
-[base · 9.91s]
+[base · scene 13.5s · starts 1:52.2]
 The user signs that recommendation as a decision receipt on Base Sepolia, linking the allocation to hashes of its policy and source incident. The agent never holds the wallet.
 
-[close · 3.41s]
+[production · scene 13.8s · starts 2:05.7]
+This is a simulation that never moves funds. A deployed guardian would issue constrained proposals: allowlisted assets, contract-enforced limits, evidence attached, and human approval before anything executes.
+
+[close · scene 6.0s · starts 2:19.5]
 Groundhog Vault. Do not pay for the same lesson twice.
 
+Total: 145.5s

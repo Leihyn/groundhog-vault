@@ -12,7 +12,7 @@ export const Screen: React.FC<{ src: string; still?: boolean; zoomFrom?: number;
   return (
     <AbsoluteFill style={{ background: COLORS.bg }}>
       <AbsoluteFill style={{ transform: `scale(${zoom})`, transformOrigin: origin }}>{media}</AbsoluteFill>
-      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(9,10,8,0.55) 0%, rgba(9,10,8,0) 22%, rgba(9,10,8,0) 70%, rgba(9,10,8,0.7) 100%)", pointerEvents: "none" }} />
+      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(9,10,8,0.55) 0%, rgba(9,10,8,0) 22%, rgba(9,10,8,0) 62%, rgba(9,10,8,0.78) 86%, rgba(9,10,8,0.94) 100%)", pointerEvents: "none" }} />
       {children}
     </AbsoluteFill>
   );

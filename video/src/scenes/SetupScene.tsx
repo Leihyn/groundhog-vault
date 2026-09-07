@@ -8,7 +8,7 @@ import { COLORS } from "../constants";
 import { SERIF } from "../fonts";
 
 export const SetupScene: React.FC = () => (
-  <Scene vo="vo_setup.wav">
+  <Scene name="setup" vo="vo_setup.wav">
     <Label style={{ position: "absolute", top: 72, left: 80 }}>Controlled experiment</Label>
     <FadeIn delay={4} style={{ position: "absolute", top: 104, left: 80 }}>
       <div style={{ fontFamily: SERIF, fontSize: 58, color: COLORS.paper0 }}>Two agents. One variable.</div>

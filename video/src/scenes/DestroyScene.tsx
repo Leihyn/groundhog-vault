@@ -12,7 +12,7 @@ export const DestroyScene: React.FC = () => {
   const shift = interpolate(frame, [120, 160], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const stampFade = 1 - shift * 0.6;
   return (
-    <Scene vo="vo_destroy.wav">
+    <Scene name="destroy" vo="vo_destroy.wav">
       <Label style={{ position: "absolute", top: 72, left: 80 }}>Between lives</Label>
       <FadeIn delay={4} style={{ position: "absolute", top: 104, left: 80 }}>
         <div style={{ fontFamily: SERIF, fontSize: 58, color: COLORS.paper0 }}>Both runtimes are destroyed.</div>

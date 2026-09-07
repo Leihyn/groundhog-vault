@@ -10,7 +10,11 @@ https://github.com/Leihyn/groundhog-vault
 
 ## Demo video URL
 
-Upload `demo/groundhog-vault-demo.mp4` (1 min 55 s, 1080p) to YouTube as unlisted or to Loom, then paste the link here.
+Upload `demo/groundhog-vault-demo.mp4` (2 min 25 s, 1080p, captions burned in) to YouTube as unlisted or to Loom, then paste the link here.
+
+Captions are burned into the picture, so they work on any player. `demo/captions.srt` is the same text as a
+subtitle track: on YouTube, open Subtitles, add a track, and upload that file so the video is searchable and
+screen-reader friendly.
 
 Suggested YouTube title: **Groundhog Vault: proving agent memory changes a treasury decision**
 

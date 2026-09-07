@@ -1,0 +1,271 @@
+{
+ "hook": [
+  {
+   "text": "A treasury agent puts thirty percent into a pool.",
+   "start": 0.0,
+   "end": 3.36
+  },
+  {
+   "text": "The pool depegs.",
+   "start": 3.92,
+   "end": 5.18
+  },
+  {
+   "text": "Eighteen thousand dollars, gone.",
+   "start": 5.18,
+   "end": 7.22
+  },
+  {
+   "text": "Then the session ends, and the agent forgets it ever happened.",
+   "start": 7.78,
+   "end": 10.92
+  }
+ ],
+ "product": [
+  {
+   "text": "Groundhog Vault is a treasury agent that remembers",
+   "start": 1.12,
+   "end": 3.26
+  },
+  {
+   "text": "the cost of failure.",
+   "start": 3.26,
+   "end": 4.38
+  }
+ ],
+ "setup": [
+  {
+   "text": "It is a controlled experiment.",
+   "start": 2.34,
+   "end": 3.66
+  },
+  {
+   "text": "Two agents get the same capital,",
+   "start": 4.4,
+   "end": 5.96
+  },
+  {
+   "text": "the same decision logic, and the same market.",
+   "start": 6.24,
+   "end": 8.12
+  },
+  {
+   "text": "Only one of them can read Sibyl memory.",
+   "start": 8.64,
+   "end": 10.06
+  }
+ ],
+ "life1": [
+  {
+   "text": "Life one.",
+   "start": 0.0,
+   "end": 0.54
+  },
+  {
+   "text": "Both allocate thirty percent to MoonPool.",
+   "start": 1.76,
+   "end": 3.88
+  },
+  {
+   "text": "Both lose eighteen thousand dollars.",
+   "start": 4.92,
+   "end": 7.22
+  },
+  {
+   "text": "Identical by design.",
+   "start": 7.22,
+   "end": 8.0
+  }
+ ],
+ "destroy": [
+  {
+   "text": "Then both runtimes are destroyed.",
+   "start": 1.46,
+   "end": 2.98
+  },
+  {
+   "text": "The only survivor is Sibyl:",
+   "start": 3.16,
+   "end": 4.47
+  },
+  {
+   "text": "an incident entity, an append-only event,",
+   "start": 4.47,
+   "end": 7.54
+  },
+  {
+   "text": "and a risk policy keyed by the risk signature,",
+   "start": 8.26,
+   "end": 10.5
+  },
+  {
+   "text": "not the protocol name.",
+   "start": 10.94,
+   "end": 11.98
+  }
+ ],
+ "life2": [
+  {
+   "text": "Life two.",
+   "start": 0.0,
+   "end": 1.51
+  },
+  {
+   "text": "SunPool has a new name,",
+   "start": 1.51,
+   "end": 3.32
+  },
+  {
+   "text": "but the same signature.",
+   "start": 3.6,
+   "end": 4.5
+  },
+  {
+   "text": "A fresh Groundhog session recalls the policy and",
+   "start": 4.8,
+   "end": 7.84
+  },
+  {
+   "text": "caps exposure at five percent.",
+   "start": 7.84,
+   "end": 10.34
+  },
+  {
+   "text": "Amnesiac repeats thirty.",
+   "start": 10.34,
+   "end": 11.64
+  },
+  {
+   "text": "Memory preserved twelve thousand three hundred dollars.",
+   "start": 12.5,
+   "end": 14.98
+  }
+ ],
+ "evidence": [
+  {
+   "text": "The evidence view traces it end to end.",
+   "start": 0.0,
+   "end": 3.18
+  },
+  {
+   "text": "The MoonPool incident, the policy it produced,",
+   "start": 3.18,
+   "end": 7.2
+  },
+  {
+   "text": "and the fresh decision that policy changed.",
+   "start": 7.2,
+   "end": 10.88
+  },
+  {
+   "text": "Every recommendation points back to the loss that taught it.",
+   "start": 11.36,
+   "end": 14.16
+  }
+ ],
+ "walkthrough": [
+  {
+   "text": "That is the whole claim.",
+   "start": 0.0,
+   "end": 0.78
+  },
+  {
+   "text": "Persist the loss.",
+   "start": 1.36,
+   "end": 2.46
+  },
+  {
+   "text": "Recall it by signature in a fresh session.",
+   "start": 2.72,
+   "end": 4.96
+  },
+  {
+   "text": "Change the decision.",
+   "start": 6.12,
+   "end": 7.18
+  }
+ ],
+ "treasury": [
+  {
+   "text": "It works on a treasury's own history too.",
+   "start": 0.0,
+   "end": 1.96
+  },
+  {
+   "text": "Record a real incident, then evaluate a differently",
+   "start": 2.3,
+   "end": 5.72
+  },
+  {
+   "text": "named proposal in a brand new session.",
+   "start": 6.28,
+   "end": 9.24
+  },
+  {
+   "text": "The recommendation is five percent,",
+   "start": 9.48,
+   "end": 11.1
+  },
+  {
+   "text": "and it cites the policy and the incident behind it.",
+   "start": 11.1,
+   "end": 14.26
+  }
+ ],
+ "base": [
+  {
+   "text": "The user signs that recommendation as a decision",
+   "start": 0.0,
+   "end": 3.08
+  },
+  {
+   "text": "receipt on Base Sepolia, linking the allocation",
+   "start": 3.08,
+   "end": 6.28
+  },
+  {
+   "text": "to hashes of its policy and source incident.",
+   "start": 6.28,
+   "end": 9.58
+  },
+  {
+   "text": "The agent never holds the wallet.",
+   "start": 9.94,
+   "end": 11.2
+  }
+ ],
+ "production": [
+  {
+   "text": "This is a simulation that never moves funds.",
+   "start": 0.0,
+   "end": 3.18
+  },
+  {
+   "text": "A deployed guardian would issue constrained proposals:",
+   "start": 3.18,
+   "end": 5.76
+  },
+  {
+   "text": "allowlisted assets, contract-enforced limits, evidence",
+   "start": 5.76,
+   "end": 9.54
+  },
+  {
+   "text": "attached, and human approval before anything executes.",
+   "start": 9.54,
+   "end": 12.08
+  }
+ ],
+ "close": [
+  {
+   "text": "Groundhog Vault.",
+   "start": 0.0,
+   "end": 1.06
+  },
+  {
+   "text": "Do not pay for the same lesson twice.",
+   "start": 1.06,
+   "end": 3.78
+  }
+ ]
+}

@@ -14,7 +14,7 @@ export const Life2Scene: React.FC = () => {
   const frame = useCurrentFrame();
   const zoom = interpolate(frame, [0, 450], [1.0, 1.05], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
-    <Scene vo="vo_life2.wav">
+    <Scene name="life2" vo="vo_life2.wav">
       <AbsoluteFill style={{ transform: `scale(${zoom})`, transformOrigin: "50% 35%" }}>
         <Sequence from={0} durationInFrames={HOLD_AT} layout="none"><Clip /></Sequence>
         <Sequence from={HOLD_AT} durationInFrames={HOLD_UNTIL - HOLD_AT} layout="none"><Freeze frame={HOLD_AT}><Clip /></Freeze></Sequence>
