@@ -514,9 +514,36 @@ async function deployReceiptContract(provider) {
   refreshBaseAction();
 }
 
+const discoveredWallets = [];
+window.addEventListener("eip6963:announceProvider", (event) => {
+  const detail = event.detail;
+  if (detail?.provider && !discoveredWallets.some((entry) => entry.info?.uuid === detail.info?.uuid)) {
+    discoveredWallets.push(detail);
+  }
+});
+window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+function selectWalletProvider() {
+  const preferred = discoveredWallets.find((entry) => entry.info?.rdns === "io.metamask")
+    || discoveredWallets.find((entry) => entry.info?.rdns !== "app.phantom");
+  if (preferred) return preferred.provider;
+  const injected = window.ethereum;
+  if (!injected) return null;
+  const candidates = Array.isArray(injected.providers) ? injected.providers : [injected];
+  return candidates.find((candidate) => candidate.isMetaMask && !candidate.isPhantom && !candidate.isRabby)
+    || candidates.find((candidate) => candidate.isMetaMask)
+    || injected;
+}
+
+function walletErrorMessage(error) {
+  if (error?.code === 4001 || error?.code === "ACTION_REJECTED") return "Wallet request was rejected.";
+  const message = error?.data?.message || error?.message || (typeof error === "string" ? error : "");
+  return message ? `Wallet error: ${message}` : "Base transaction was not submitted.";
+}
+
 elements.recordBase.addEventListener("click", async () => {
   if (!state.baseConfig) return;
-  const provider = window.ethereum;
+  const provider = selectWalletProvider();
   if (!provider) {
     elements.baseStatus.textContent = "A browser wallet is required to record the receipt.";
     return;
@@ -545,7 +572,8 @@ elements.recordBase.addEventListener("click", async () => {
       ? "Decision receipt confirmed on Base Sepolia."
       : receipt ? "The Base transaction reverted." : "Transaction submitted; confirmation is still pending.";
   } catch (error) {
-    elements.baseStatus.textContent = error instanceof Error ? error.message : "Base transaction was not submitted.";
+    console.error("Base wallet request failed", error);
+    elements.baseStatus.textContent = walletErrorMessage(error);
   } finally {
     refreshBaseAction();
   }

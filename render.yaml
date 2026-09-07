@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: groundhog-vault
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: GROUNDHOG_DATA_ROOT
+        value: /app/.data
+      - key: BASE_RECEIPT_CONTRACT
+        sync: false
