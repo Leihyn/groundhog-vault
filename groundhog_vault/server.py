@@ -142,6 +142,18 @@ class GroundhogRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json(_public_snapshot(session), HTTPStatus.CREATED)
                 return
 
+            # Whole experiment in one request; the front end calls this so the same
+            # page works here and on the serverless build (api/run.py).
+            if path == "/api/run":
+                with STORE_LOCK:
+                    session = STORE.create()
+                    while not session.complete:
+                        session.run_next_life()
+                    STORE.save(session)
+                    payload = _public_snapshot(session)
+                self._send_json(payload)
+                return
+
             life_match = LIFE_ENDPOINT.match(path)
             if life_match:
                 run_id = life_match.group(1)

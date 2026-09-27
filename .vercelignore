@@ -1,0 +1,15 @@
+.venv
+.data
+.ruff_cache
+.remotion-install.log
+*.egg-info
+build
+video
+demo
+docs
+tests
+contracts
+proposals
+Dockerfile
+render.yaml
+.env*

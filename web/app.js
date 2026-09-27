@@ -186,14 +186,17 @@ function configureLoading(lifeNumber) {
     : "Both runtimes are new. Groundhog opens the persisted Sibyl database; Amnesiac receives no historical channel.";
 }
 
+// The experiment runs to completion in a single request (see api/run.py). Life one
+// fetches the whole run and reveals the first life; life two reveals the second from
+// the result already in hand. The two-beat narrative is unchanged, but no run state
+// has to survive between requests, which is what makes this deployable on serverless.
 async function loadLifeOne() {
   configureLoading(1);
   setPhase("loading");
   try {
-    const created = await postJson("/api/runs");
-    state.runId = created.run_id;
+    state.result = await postJson("/api/run");
+    state.runId = state.result.run_id;
     window.localStorage.setItem("groundhog-active-run", state.runId);
-    state.result = await postJson(`/api/runs/${state.runId}/lives`);
     renderLife(0);
     setPhase("success");
   } catch (error) {
@@ -206,7 +209,9 @@ async function loadLifeTwo() {
   configureLoading(2);
   setPhase("loading");
   try {
-    state.result = await postJson(`/api/runs/${state.runId}/lives`);
+    if (!state.result || !armLife(state.result, "groundhog", 1)) {
+      throw new Error("The completed run is no longer in memory. Reset and start again.");
+    }
     renderLife(1);
     setPhase("success");
   } catch (error) {
@@ -409,10 +414,22 @@ elements.proposalForm.addEventListener("submit", async (event) => {
   }
 });
 
+// The serverless build cannot persist treasury workspaces, so its config
+// reports treasury: false and the Treasury screen is removed from the nav.
+function hideTreasury() {
+  document.querySelector('.nav-link[data-screen-target="treasury"]')?.remove();
+  document.querySelectorAll(".nav-link").forEach((link, index) => {
+    const number = link.querySelector("span");
+    if (number) number.textContent = String(index + 1).padStart(2, "0");
+  });
+  if (state.screen === "treasury") showScreen("arena");
+}
+
 async function loadBaseConfig() {
   try {
     const response = await fetch("/api/config");
     const payload = await response.json();
+    if (payload.treasury === false) hideTreasury();
     state.baseConfig = payload.base;
     const localContract = window.localStorage.getItem("groundhog-base-contract") || "";
     if (!state.baseConfig.receipt_contract && /^0x[a-fA-F0-9]{40}$/.test(localContract)) {

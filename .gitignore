@@ -22,3 +22,5 @@ video/public/*.mp4
 video/public/*.wav
 video/public/*.png
 .remotion-install.log
+.vercel
+.env*
