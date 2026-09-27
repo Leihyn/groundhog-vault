@@ -419,8 +419,11 @@ elements.proposalForm.addEventListener("submit", async (event) => {
 function hideTreasury() {
   document.querySelector('.nav-link[data-screen-target="treasury"]')?.remove();
   document.querySelectorAll(".nav-link").forEach((link, index) => {
+    const label = String(index + 1).padStart(2, "0");
     const number = link.querySelector("span");
-    if (number) number.textContent = String(index + 1).padStart(2, "0");
+    if (number) number.textContent = label;
+    const heading = document.querySelector(`#${link.dataset.screenTarget} .screen-heading .eyebrow`);
+    if (heading) heading.textContent = heading.textContent.replace(/^\d{2}(?= \/)/, label);
   });
   if (state.screen === "treasury") showScreen("arena");
 }
