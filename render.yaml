@@ -1,10 +1,29 @@
+# Groundhog Vault — Render Blueprint
+#
+# Two deliberate changes from the original blueprint, both cost decisions:
+#
+# 1. plan: free -> starter. Render's free web services sleep after inactivity and cold-start
+#    on the next request, so a first visitor waits on a sleeping service that reads as
+#    broken. Free also caps out at no persistent storage.
+# 2. A disk is now declared. The original set GROUNDHOG_DATA_ROOT=/app/.data but declared no
+#    disk, so the container filesystem was ephemeral and every restart silently wiped the
+#    vault's data. Free plans cannot mount disks at all, which is why 1 follows from 2.
+#
+# If you would rather not pay, use the stateless Vercel build instead (vercel.json): it runs
+# the experiment in one request and needs no disk, but leaves out the Treasury forms, which
+# need a store that persists across requests.
+
 services:
   - type: web
     name: groundhog-vault
     runtime: docker
-    plan: free
+    plan: starter
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
+    disk:
+      name: groundhog-data
+      mountPath: /app/.data
+      sizeGB: 1
     envVars:
       - key: GROUNDHOG_DATA_ROOT
         value: /app/.data
