@@ -425,6 +425,13 @@ function hideTreasury() {
     const heading = document.querySelector(`#${link.dataset.screenTarget} .screen-heading .eyebrow`);
     if (heading) heading.textContent = heading.textContent.replace(/^\d{2}(?= \/)/, label);
   });
+  // Base receipts are signed from the Treasury screen, so drop the sidebar line about them.
+  const receiptNote = " Base receipts are user-signed testnet transactions.";
+  document.querySelectorAll(".nav-status p").forEach((note) => {
+    if (!note.querySelector("a") && note.textContent.includes(receiptNote)) {
+      note.textContent = note.textContent.replace(receiptNote, "");
+    }
+  });
   if (state.screen === "treasury") showScreen("arena");
 }
 
